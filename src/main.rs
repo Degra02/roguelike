@@ -1,10 +1,12 @@
 use bevy::{
-    prelude::{App, Camera2dBundle, Commands, Plugin, Query, Res, ResMut, Resource, With},
-    time::{Time, Timer},
+    prelude::{App, Camera2dBundle, Commands, Plugin},
     DefaultPlugins,
 };
 use bevy_editor_pls::prelude::EditorPlugin;
-use entities::{player::{spawn_player, move_player}, animations::animate_sprite};
+use entities::{
+    animations::{animate_sprite, change_player_animation},
+    player::{move_player, spawn_player},
+};
 mod entities;
 
 fn main() {
@@ -20,7 +22,7 @@ pub struct StartupPlugin;
 impl Plugin for StartupPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_systems((spawn_camera, spawn_player))
-            .add_systems((animate_sprite, move_player));
+            .add_systems((animate_sprite, move_player, change_player_animation));
     }
 }
 
