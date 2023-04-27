@@ -12,3 +12,4 @@ opt-level = 3
 [dependencies]
 bevy = { version = "0.10.1", features = ["wayland"] }
 bevy_editor_pls = {git = "https://github.com/jakobhellermann/bevy_editor_pls"}
+leafwing-input-manager = "0.9.2"
