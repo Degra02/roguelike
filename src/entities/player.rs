@@ -1,44 +1,33 @@
 use bevy::{
     prelude::{
         AssetServer, Assets, Commands, Component, Input, KeyCode, Query, Res, ResMut, Transform,
-        Vec2, With,
+        Vec2, With, error,
     },
     sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
     time::Time,
 };
 
-use super::animations::{FrameTime, SpriteAnimation};
+use super::animations::{sprite_animation::{FrameTime, SpriteAnimation}, player_animations::{PlayerAnimations, Animation}, self};
 
 #[derive(Component)]
 pub struct Player;
 
 pub fn spawn_player(
     mut commands: Commands,
-    mut texture_atlas: ResMut<Assets<TextureAtlas>>,
-    asset_server: Res<AssetServer>,
+    animations: Res<PlayerAnimations>
 ) {
-    let atlas = TextureAtlas::from_grid(
-        asset_server.load("Main Characters/Mask Dude/Idle (32x32).png"),
-        Vec2::splat(32.),
-        11,
-        1,
-        None,
-        None,
-    );
+    let Some((texture_atlas, animation)) = animations.get(Animation::Idle) else { error!("Failed to find animation: Idle"); return;};
     commands.spawn((
         SpriteSheetBundle {
             sprite: TextureAtlasSprite {
                 index: 0,
                 ..Default::default()
             },
-            texture_atlas: texture_atlas.add(atlas),
+            texture_atlas,
             ..SpriteSheetBundle::default()
         },
         Player,
-        SpriteAnimation {
-            len: 11,
-            frame_time: 1. / 20.,
-        },
+        animation,
         FrameTime(0.0),
     ));
 }

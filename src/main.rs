@@ -4,8 +4,7 @@ use bevy::{
 };
 use bevy_editor_pls::prelude::EditorPlugin;
 use entities::{
-    animations::{animate_sprite, change_player_animation},
-    player::{move_player, spawn_player},
+    player::{move_player, spawn_player}, animations::{sprite_animation::animate_sprite, player_animations::{change_player_animation, PlayerAnimations}},
 };
 mod entities;
 
@@ -22,7 +21,8 @@ pub struct StartupPlugin;
 impl Plugin for StartupPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_systems((spawn_camera, spawn_player))
-            .add_systems((animate_sprite, move_player, change_player_animation));
+            .add_systems((animate_sprite, move_player, change_player_animation))
+        .init_resource::<PlayerAnimations>();
     }
 }
 
