@@ -12,7 +12,7 @@ use crate::entities::player::{Player, Jump};
 
 use super::sprite_animation::SpriteAnimation;
 
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Animation {
     Run,
     Idle,
@@ -66,10 +66,10 @@ impl FromWorld for PlayerAnimations {
 
 
         let mut texture_atlas = world.resource_mut::<Assets<TextureAtlas>>();
-        map.add(Animation::Idle, texture_atlas.add(idle_atlas), SpriteAnimation {len: 11, frame_time: 1./20.});
-        map.add(Animation::Run, texture_atlas.add(run_atlas), SpriteAnimation {len: 12, frame_time: 1./20.});
-        map.add(Animation::Run, texture_atlas.add(jump_atlas), SpriteAnimation {len: 1, frame_time: 1.});
-        map.add(Animation::Run, texture_atlas.add(fall_atlas), SpriteAnimation {len: 1, frame_time: 1.});
+        map.add(Animation::Idle, texture_atlas.add(idle_atlas), SpriteAnimation {len: 11, frame_time: 1./10.});
+        map.add(Animation::Run, texture_atlas.add(run_atlas), SpriteAnimation {len: 12, frame_time: 1./10.});
+        map.add(Animation::Jump, texture_atlas.add(jump_atlas), SpriteAnimation {len: 1, frame_time: 1.});
+        map.add(Animation::Fall, texture_atlas.add(fall_atlas), SpriteAnimation {len: 1, frame_time: 1.});
 
         map
     }
@@ -112,35 +112,22 @@ pub fn change_player_animation(
         sprite.flip_x = false;
     }
 
-    //Jumping if jump
-    if jump.is_some() {
-        let Some((new_atlas, new_animaiton)) = animations.get(Animation::Jump) else {error!("No Animation Jump Loaded"); return;};
-        *atlas = new_atlas;
-        *animation = new_animaiton;
-        sprite.index = 0;
-        return;
-    //Falling if Y > 0.0
+    let set = if jump.is_some() {
+        Animation::Jump
     } else if pos.translation.y > 0.0 {
-        let Some((new_atlas, new_animaiton)) = animations.get(Animation::Fall) else {error!("No Animation Fall Loaded"); return;};
-        *atlas = new_atlas;
-        *animation = new_animaiton;
-        sprite.index = 0;
-        return;
-    }
+        Animation::Fall
+    } else if input.any_pressed([KeyCode::A, KeyCode::D]) {
+        Animation::Run
+    } else {
+        Animation::Idle
+    };
 
+    
     if input.any_just_pressed([KeyCode::A, KeyCode::Left, KeyCode::D, KeyCode::Right]) {
-        let Some((new_atlas, new_animaiton)) = animations.get(Animation::Run) else {error!("No Animation Run Loaded"); return;};
+        let Some((new_atlas, new_animation)) = animations.get(set.clone()) else {error!("No Animation {:?} Loaded", set); return;};
         *atlas = new_atlas;
-        *animation = new_animaiton;
-        sprite.index = 0;
-    }
-    //if no move keys pressed set idel animtaion
-    if input.any_just_released([KeyCode::A, KeyCode::Left, KeyCode::D, KeyCode::Right])
-    && !input.any_pressed([KeyCode::A, KeyCode::Left, KeyCode::D, KeyCode::Right]) {
-        let Some((new_atlas, new_animaiton)) = animations.get(Animation::Idle) else {error!("No Animation Idle Loaded"); return;};
-        *atlas = new_atlas;
-        *animation = new_animaiton;
-        sprite.index = 0;
+        sprite.index %= new_animation.len;
+        *animation = new_animation;
     }
 
 }

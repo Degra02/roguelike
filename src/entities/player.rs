@@ -1,13 +1,15 @@
 use bevy::{
     prelude::{
-        Commands, Component, Input, KeyCode, Query, Res, Transform, With, error, Entity, Without,
+        Commands, Component, Input, KeyCode, Query, Res, Transform, With, error, Entity, Without, Vec2, Vec3,
     },
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
     time::Time,
 };
-use leafwing_input_manager::{Actionlike, prelude::InputMap};
+use leafwing_input_manager::{Actionlike, prelude::{InputMap, ActionState}};
 
-use super::animations::{sprite_animation::{FrameTime}, player_animations::{PlayerAnimations, Animation}};
+use crate::animations::{player_animations::{PlayerAnimations, Animation}, sprite_animation::FrameTime};
+
+use super::hit_box::{HitBox, Grounded, check_hit};
 
 #[derive(Component)]
 pub struct Player;
@@ -29,6 +31,8 @@ pub fn spawn_player(
         Player,
         animation,
         FrameTime(0.0),
+        Grounded(true),
+        HitBox(Vec2::splat(32.))
     ));
 }
 
@@ -50,24 +54,37 @@ pub const MOVE_SPEED: f32 = 300.0;
 
 pub fn move_player(
     mut commands: Commands,
-    mut player: Query<(Entity, &mut Transform), With<Player>>,
+    mut player: Query<(Entity, &mut Transform, &Grounded, &HitBox, &ActionState<PlayerInput>), With<Player>>,
+    hitboxes: Query<(&HitBox, &Transform), Without<Player>>,
     time: Res<Time>,
     input: Res<Input<KeyCode>>
 ) {
-    let (entity, mut player) = player.single_mut();
-    if input.any_pressed([KeyCode::A, KeyCode::Left]) {
-        player.translation.x -= MOVE_SPEED * time.delta_seconds();
-    } else if input.any_pressed([KeyCode::D, KeyCode::Right]) {
-        player.translation.x += MOVE_SPEED * time.delta_seconds();
-    } else if input.any_just_pressed([KeyCode::Space]) {
-       commands.entity(entity).insert(Jump(100.)); 
+    let (entity, mut p_offset, grounded, &p_hitbox,_p_input) = player.single_mut();
+    let delat = if input.any_just_pressed([KeyCode::Space]) && grounded.0 {
+        commands.entity(entity).insert(Jump(100.));
+        return;
+    } else if input.any_pressed([KeyCode::A]) {
+        -MOVE_SPEED * time.delta_seconds()* (0.5 + (grounded.0 as u16) as f32) 
+    } else if input.any_pressed([KeyCode::D]) {
+        MOVE_SPEED * time.delta_seconds()* (0.5 + (grounded.0 as u16) as f32)  
+    } else {
+        return;
+    };
+
+    let new_pos = p_offset.translation + Vec3::X * delat;
+    for (&hitbox, offset) in &hitboxes {
+        if check_hit(p_hitbox, p_offset.translation, hitbox, offset.translation) {
+            return;
+        }
     }
+
+    p_offset.translation = new_pos;
 }
 
 #[derive(Component)]
 pub struct Jump(f32);
 
-const GRAVITY: f32 = 700.0;
+const GRAVITY: f32 = 300.0;
 
 pub fn player_jump(
     mut commands: Commands,
@@ -85,11 +102,13 @@ pub fn player_jump(
 
 pub fn player_fall(
     time: Res<Time>,
-    mut player: Query<&mut Transform, (With<Player>, Without<Jump>)>
-) {
-    let Ok(mut player) = player.get_single_mut() else {return;};
-    if player.translation.y > 0. {
-        player.translation.y -= time.delta_seconds() * GRAVITY;
-        if player.translation.y < 0. {player.translation.y = 0.0;}
-    }       
+    mut player: Query<(&mut Transform, &HitBox), With<Player>>,
+    hitboxes: Query<(&HitBox, &Transform), Without<Player>>
+) {   
+    let Ok((mut p_offset, &p_hitbox)) = player.get_single_mut() else {return;};
+    let new_pos = p_offset.translation - Vec3::Y * GRAVITY * time.delta_seconds();
+    for (&hitbox, offset) in &hitboxes {
+        if check_hit(p_hitbox, new_pos, hitbox, offset.translation) {return;}
+    }
+    p_offset.translation = new_pos;
 }

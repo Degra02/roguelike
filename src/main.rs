@@ -1,13 +1,18 @@
+use animations::{sprite_animation::animate_sprite, player_animations::{change_player_animation, PlayerAnimations}};
 use bevy::{
     prelude::{App, Camera2dBundle, Commands, Plugin},
     DefaultPlugins,
 };
 use bevy_editor_pls::prelude::EditorPlugin;
 use entities::{
-    player::{move_player, spawn_player, PlayerInput, player_fall, player_jump}, animations::{sprite_animation::animate_sprite, player_animations::{change_player_animation, PlayerAnimations}},
+    player::{move_player, spawn_player, PlayerInput, player_fall, player_jump}
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
-mod entities;
+use map::spawn_map;
+
+pub mod entities;
+pub mod animations;
+pub mod map;
 
 fn main() {
     App::new()
@@ -22,7 +27,7 @@ pub struct StartupPlugin;
 
 impl Plugin for StartupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_systems((spawn_camera, spawn_player))
+        app.add_startup_systems((spawn_camera, spawn_map, spawn_player ))
             .add_system(move_player)
             .add_plugin(AnimationPlugin);
     }
