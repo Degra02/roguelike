@@ -1,14 +1,13 @@
 use bevy::{
     prelude::{
-        AssetServer, Assets, Commands, Component, Input, KeyCode, Query, Res, ResMut, Transform,
-        Vec2, With, error, Entity, Without,
+        Commands, Component, Input, KeyCode, Query, Res, Transform, With, error, Entity, Without,
     },
-    sprite::{SpriteSheetBundle, TextureAtlas, TextureAtlasSprite},
+    sprite::{SpriteSheetBundle, TextureAtlasSprite},
     time::Time,
 };
 use leafwing_input_manager::{Actionlike, prelude::InputMap};
 
-use super::animations::{sprite_animation::{FrameTime, SpriteAnimation}, player_animations::{PlayerAnimations, Animation}, self};
+use super::animations::{sprite_animation::{FrameTime}, player_animations::{PlayerAnimations, Animation}};
 
 #[derive(Component)]
 pub struct Player;

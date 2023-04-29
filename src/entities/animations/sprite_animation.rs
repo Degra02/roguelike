@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
-        AssetServer, Assets, Component, Handle, Input, KeyCode, Query, Res, ResMut, Vec2, With,
+        Component, Query, Res,
     },
-    sprite::{TextureAtlas, TextureAtlasSprite},
+    sprite::{TextureAtlasSprite},
     time::Time,
 };
 

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use bevy::{
     prelude::{
-        AssetServer, Assets, FromWorld, Handle, Input, KeyCode, Query, Res, ResMut, Resource, Vec2,
+        AssetServer, Assets, FromWorld, Handle, Input, KeyCode, Query, Res, Resource, Vec2,
         With, error, Transform,
     },
     sprite::{TextureAtlas, TextureAtlasSprite},
