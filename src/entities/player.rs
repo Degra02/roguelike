@@ -7,12 +7,10 @@ use crate::animations::{
 };
 use bevy::{
     prelude::{
-        error, Bundle, Changed, Commands, Component, Entity, Input, KeyCode, Query, Res, Transform,
-        Vec2, Vec3, With, Without,
+        error, Bundle, Changed, Commands, Component, Entity, KeyCode, Query, Res, With,
     },
     reflect::Reflect,
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
-    time::Time,
 };
 use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity};
 use leafwing_input_manager::{
@@ -96,9 +94,7 @@ pub fn move_player(
         velocity.linvel.x = -MOVE_SPEED;
     } else if input.just_pressed(PlayerInput::Right) {
         velocity.linvel.x = MOVE_SPEED;
-    } else if input.just_released(PlayerInput::Left) {
-        velocity.linvel.x = 0.;
-    } else if input.just_released(PlayerInput::Right) {
+    } else if input.just_released(PlayerInput::Left) || else if input.just_released(PlayerInput::Right) {
         velocity.linvel.x = 0.;
     }
 }

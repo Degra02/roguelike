@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use bevy::{
     prelude::{
-        error, AssetServer, Assets, FromWorld, Handle, Input, KeyCode, Query, Res, Resource,
-        Transform, Vec2, With,
+        error, AssetServer, Assets, FromWorld, Handle, Input, KeyCode, Query, Res, Resource, Vec2, With,
     },
     sprite::{TextureAtlas, TextureAtlasSprite},
 };
@@ -124,10 +123,10 @@ pub fn change_player_animation(
         ),
         With<Player>,
     >,
-    input: Res<Input<KeyCode>>,
+    _input: Res<Input<KeyCode>>,
     animations: Res<PlayerAnimations>,
 ) {
-    let (mut atlas, mut animation, mut sprite, jump, velocity) = player.single_mut();
+    let (mut atlas, mut animation, mut sprite, _jump, velocity) = player.single_mut();
     if velocity.linvel.x < 0. {
         sprite.flip_x = true;
     } else if velocity.linvel.x >= 0. {

@@ -11,11 +11,7 @@ pub fn ground_detection(
 ) {
     let (pos,mut on_ground) = player.single_mut();
 
-    let current = if (pos.translation.y * 100.).round() == *last {
-        true
-    } else {
-        false
-    };
+    let current = (pos.translation.y * 100.).round() == *last;
     if current != on_ground.0 {
         on_ground.0 = current;
     }
