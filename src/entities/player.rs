@@ -94,7 +94,7 @@ pub fn move_player(
         velocity.linvel.x = -MOVE_SPEED;
     } else if input.just_pressed(PlayerInput::Right) {
         velocity.linvel.x = MOVE_SPEED;
-    } else if input.just_released(PlayerInput::Left) || else if input.just_released(PlayerInput::Right) {
+    } else if input.just_released(PlayerInput::Left) || input.just_released(PlayerInput::Right) {
         velocity.linvel.x = 0.;
     }
 }
