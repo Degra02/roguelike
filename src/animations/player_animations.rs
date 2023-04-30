@@ -2,13 +2,14 @@ use std::collections::HashMap;
 
 use bevy::{
     prelude::{
-        AssetServer, Assets, FromWorld, Handle, Input, KeyCode, Query, Res, Resource, Vec2,
-        With, error, Transform,
+        error, AssetServer, Assets, FromWorld, Handle, Input, KeyCode, Query, Res, Resource,
+        Transform, Vec2, With,
     },
     sprite::{TextureAtlas, TextureAtlasSprite},
 };
+use bevy_rapier2d::prelude::Velocity;
 
-use crate::entities::player::{Player, Jump};
+use crate::entities::player::{Jump, Player};
 
 use super::sprite_animation::SpriteAnimation;
 
@@ -64,12 +65,39 @@ impl FromWorld for PlayerAnimations {
             None,
         );
 
-
         let mut texture_atlas = world.resource_mut::<Assets<TextureAtlas>>();
-        map.add(Animation::Idle, texture_atlas.add(idle_atlas), SpriteAnimation {len: 11, frame_time: 1./10.});
-        map.add(Animation::Run, texture_atlas.add(run_atlas), SpriteAnimation {len: 12, frame_time: 1./10.});
-        map.add(Animation::Jump, texture_atlas.add(jump_atlas), SpriteAnimation {len: 1, frame_time: 1.});
-        map.add(Animation::Fall, texture_atlas.add(fall_atlas), SpriteAnimation {len: 1, frame_time: 1.});
+        map.add(
+            Animation::Idle,
+            texture_atlas.add(idle_atlas),
+            SpriteAnimation {
+                len: 11,
+                frame_time: 1. / 10.,
+            },
+        );
+        map.add(
+            Animation::Run,
+            texture_atlas.add(run_atlas),
+            SpriteAnimation {
+                len: 12,
+                frame_time: 1. / 10.,
+            },
+        );
+        map.add(
+            Animation::Jump,
+            texture_atlas.add(jump_atlas),
+            SpriteAnimation {
+                len: 1,
+                frame_time: 1.,
+            },
+        );
+        map.add(
+            Animation::Fall,
+            texture_atlas.add(fall_atlas),
+            SpriteAnimation {
+                len: 1,
+                frame_time: 1.,
+            },
+        );
 
         map
     }
@@ -91,43 +119,33 @@ pub fn change_player_animation(
             &mut Handle<TextureAtlas>,
             &mut SpriteAnimation,
             &mut TextureAtlasSprite,
+            &Jump,
+            &Velocity,
         ),
         With<Player>,
     >,
-    player_jump: Query<(&Transform, Option<&Jump>), With<Player>>,
     input: Res<Input<KeyCode>>,
-    animations: Res<PlayerAnimations>
+    animations: Res<PlayerAnimations>,
 ) {
-    let (mut atlas, mut animation, mut sprite) = player.single_mut();
-    let (pos, jump) = player_jump.single();
-
-    if input.any_just_pressed([KeyCode::A, KeyCode::Left]) {
+    let (mut atlas, mut animation, mut sprite, jump, velocity) = player.single_mut();
+    if velocity.linvel.x < 0. {
         sprite.flip_x = true;
-    } else if input.any_just_pressed([KeyCode::D, KeyCode::Right])
-    && !input.any_pressed([KeyCode::A, KeyCode::Left]) {
-        sprite.flip_x = false;
-    } else if input.any_just_released([KeyCode::A, KeyCode::Left])
-    && !input.any_pressed([KeyCode::A, KeyCode::Left])
-    && input.any_pressed([KeyCode::D, KeyCode::Right]) {
+    } else if velocity.linvel.x >= 0. {
         sprite.flip_x = false;
     }
 
-    let set = if jump.is_some() {
+    let set = if velocity.linvel.y > 0.01 {
         Animation::Jump
-    } else if pos.translation.y > 0.0 {
+    } else if velocity.linvel.y < -0.01 {
         Animation::Fall
-    } else if input.any_pressed([KeyCode::A, KeyCode::D]) {
+    } else if velocity.linvel.x != 0. {
         Animation::Run
     } else {
         Animation::Idle
     };
 
-    
-    if input.any_just_pressed([KeyCode::A, KeyCode::Left, KeyCode::D, KeyCode::Right]) {
-        let Some((new_atlas, new_animation)) = animations.get(set.clone()) else {error!("No Animation {:?} Loaded", set); return;};
-        *atlas = new_atlas;
-        sprite.index %= new_animation.len;
-        *animation = new_animation;
-    }
-
+    let Some((new_atlas, new_animation)) = animations.get(set.clone()) else {error!("No Animation {:?} Loaded", set); return;};
+    *atlas = new_atlas;
+    sprite.index %= new_animation.len;
+    *animation = new_animation;
 }

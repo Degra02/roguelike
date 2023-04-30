@@ -1,24 +1,40 @@
+use super::{
+    health::Health, hit_box::Grounded,
+};
+use crate::animations::{
+    player_animations::{Animation, PlayerAnimations},
+    sprite_animation::FrameTime,
+};
 use bevy::{
     prelude::{
-        Commands, Component, Input, KeyCode, Query, Res, Transform, With, error, Entity, Without, Vec2, Vec3,
+        error, Bundle, Changed, Commands, Component, Entity, Input, KeyCode, Query, Res, Transform,
+        Vec2, Vec3, With, Without,
     },
+    reflect::Reflect,
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
     time::Time,
 };
-use leafwing_input_manager::{Actionlike, prelude::{InputMap, ActionState}};
+use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity};
+use leafwing_input_manager::{
+    prelude::{ActionState, InputMap},
+    Actionlike, InputManagerBundle,
+};
 
-use crate::animations::{player_animations::{PlayerAnimations, Animation}, sprite_animation::FrameTime};
+#[derive(Bundle)]
+pub struct PlayerBundle {
+    health: Health,
+    _p: Player,
 
-use super::hit_box::{HitBox, Grounded, check_hit};
+    #[bundle]
+    sprite: SpriteSheetBundle,
+}
 
 #[derive(Component)]
 pub struct Player;
 
-pub fn spawn_player(
-    mut commands: Commands,
-    animations: Res<PlayerAnimations>
-) {
+pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
     let Some((texture_atlas, animation)) = animations.get(Animation::Idle) else { error!("Failed to find animation: Idle"); return;};
+
     commands.spawn((
         SpriteSheetBundle {
             sprite: TextureAtlasSprite {
@@ -32,19 +48,34 @@ pub fn spawn_player(
         animation,
         FrameTime(0.0),
         Grounded(true),
-        HitBox(Vec2::splat(32.))
+        InputManagerBundle {
+            input_map: PlayerInput::player_one(),
+            ..Default::default()
+        },
+        Jump(false),
+        RigidBody::Dynamic,
+        Velocity::default(),
+        Collider::cuboid(9., 16.),
+        LockedAxes::ROTATION_LOCKED_Z,
     ));
 }
 
 #[derive(Debug, Actionlike, Clone)]
 pub enum PlayerInput {
-    Left, Right, Jump
+    Left,
+    Right,
+    Jump,
+    Fall,
 }
 
 impl PlayerInput {
     pub fn player_one() -> InputMap<PlayerInput> {
         let mut map = InputMap::default();
-        map.insert_multiple([(KeyCode::A, PlayerInput::Left), (KeyCode::D, PlayerInput::Right), (KeyCode::Space, PlayerInput::Jump)]);
+        map.insert_multiple([
+            (KeyCode::A, PlayerInput::Left),
+            (KeyCode::D, PlayerInput::Right),
+            (KeyCode::Space, PlayerInput::Jump),
+        ]);
 
         map
     }
@@ -53,62 +84,47 @@ impl PlayerInput {
 pub const MOVE_SPEED: f32 = 300.0;
 
 pub fn move_player(
-    mut commands: Commands,
-    mut player: Query<(Entity, &mut Transform, &Grounded, &HitBox, &ActionState<PlayerInput>), With<Player>>,
-    hitboxes: Query<(&HitBox, &Transform), Without<Player>>,
-    time: Res<Time>,
-    input: Res<Input<KeyCode>>
+    mut player: Query<(&mut Velocity, &ActionState<PlayerInput>, &Grounded), With<Player>>,
 ) {
-    let (entity, mut p_offset, grounded, &p_hitbox,_p_input) = player.single_mut();
-    let delat = if input.any_just_pressed([KeyCode::Space]) && grounded.0 {
-        commands.entity(entity).insert(Jump(100.));
-        return;
-    } else if input.any_pressed([KeyCode::A]) {
-        -MOVE_SPEED * time.delta_seconds()* (0.5 + (grounded.0 as u16) as f32) 
-    } else if input.any_pressed([KeyCode::D]) {
-        MOVE_SPEED * time.delta_seconds()* (0.5 + (grounded.0 as u16) as f32)  
-    } else {
-        return;
-    };
+    let (mut velocity, input, grounded) = player.single_mut();
 
-    let new_pos = p_offset.translation + Vec3::X * delat;
-    for (&hitbox, offset) in &hitboxes {
-        if check_hit(p_hitbox, p_offset.translation, hitbox, offset.translation) {
-            return;
+    if input.just_pressed(PlayerInput::Jump) && grounded.0 {
+        velocity.linvel.y = 600.;
+    } else if input.just_pressed(PlayerInput::Fall) {
+        velocity.linvel.y = velocity.linvel.y.min(0.);
+    } else if input.just_pressed(PlayerInput::Left) {
+        velocity.linvel.x = -MOVE_SPEED;
+    } else if input.just_pressed(PlayerInput::Right) {
+        velocity.linvel.x = MOVE_SPEED;
+    } else if input.just_released(PlayerInput::Left) {
+        velocity.linvel.x = 0.;
+    } else if input.just_released(PlayerInput::Right) {
+        velocity.linvel.x = 0.;
+    }
+}
+
+#[derive(Component, Reflect)]
+pub struct Jump(bool);
+
+pub fn double_jump(
+    mut player: Query<(&mut Jump, &mut Velocity, &ActionState<PlayerInput>), With<Player>>,
+    can_jump: Query<(Entity, &Grounded), Changed<Grounded>>,
+) {
+    for (entity, grounded) in &can_jump {
+        if let Ok((mut jump, _, _)) = player.get_mut(entity) {
+            if grounded.0 {
+                jump.0 = true;
+            }
         }
     }
 
-    p_offset.translation = new_pos;
-}
-
-#[derive(Component)]
-pub struct Jump(f32);
-
-const GRAVITY: f32 = 300.0;
-
-pub fn player_jump(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut player: Query<(Entity, &mut Transform, &mut Jump), With<Player>>
-) {
-   let Ok((player, mut transform, mut jump)) = player.get_single_mut() else {return;}; 
-    let jump_power = (time.delta_seconds() * GRAVITY * 2.).min(jump.0);
-    jump.0 -= jump_power;
-    transform.translation.y += jump_power;
-    if jump.0 == 0. {
-        commands.entity(player).remove::<Jump>();
-    } 
-}
-
-pub fn player_fall(
-    time: Res<Time>,
-    mut player: Query<(&mut Transform, &HitBox), With<Player>>,
-    hitboxes: Query<(&HitBox, &Transform), Without<Player>>
-) {   
-    let Ok((mut p_offset, &p_hitbox)) = player.get_single_mut() else {return;};
-    let new_pos = p_offset.translation - Vec3::Y * GRAVITY * time.delta_seconds();
-    for (&hitbox, offset) in &hitboxes {
-        if check_hit(p_hitbox, new_pos, hitbox, offset.translation) {return;}
+    for (mut jump, mut velocity, input) in player.iter_mut() {
+        if velocity.linvel.y.abs() < 0.01 {
+            return;
+        }
+        if input.just_pressed(PlayerInput::Jump) && jump.0 {
+            jump.0 = false;
+            velocity.linvel.y = 100.;
+        }
     }
-    p_offset.translation = new_pos;
 }

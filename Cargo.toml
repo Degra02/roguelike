@@ -15,4 +15,4 @@ bevy-inspector-egui-rapier = { version = "0.9.0", features = ["rapier2d"] }
 bevy_ecs_ldtk = { version = "0.6.0", features = ["atlas"] }
 bevy_editor_pls = {git = "https://github.com/jakobhellermann/bevy_editor_pls"}
 bevy_rapier2d = "0.21.0"
-leafwing-input-manager = "0.9.2"
+leafwing-input-manager = "0.9.1"
