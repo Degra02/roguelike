@@ -8,7 +8,7 @@ use bevy::{
 };
 use bevy_rapier2d::prelude::Velocity;
 
-use crate::entities::player::{Jump, Player};
+use crate::entities::player::Player;
 
 use super::sprite_animation::SpriteAnimation;
 
@@ -132,9 +132,9 @@ pub fn change_player_animation(
         sprite.flip_x = false;
     }
 
-    let set = if velocity.linvel.y > 0.01 {
+    let mut set = if velocity.linvel.y > 0.01 {
         Animation::Jump
-    } else if velocity.linvel.y < -0.01 {
+    } else if velocity.linvel.y < -10. {
         Animation::Fall
     } else if velocity.linvel.x != 0. {
         Animation::Run

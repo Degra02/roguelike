@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use super::{
-    health::Health, collision::{Grounded, CollisionBundle},
+    health::Health, collision::CollisionBundle, block::Wall,
 };
 use crate::animations::{
     player_animations::{Animation, PlayerAnimations},
@@ -9,10 +9,10 @@ use crate::animations::{
 };
 use bevy::{
     prelude::{
-        error, Bundle, Changed, Commands, Component, Entity, KeyCode, Query, Res, With, Vec2,
+        error, Bundle, Changed, Commands, Component, Entity, KeyCode, Query, Res, With, Vec2, Transform,
     },
     reflect::Reflect,
-    sprite::{SpriteSheetBundle, TextureAtlasSprite}, time::Time, ecs::schedule::MainThreadExecutor,
+    sprite::{SpriteSheetBundle, TextureAtlasSprite}, time::Time, ecs::schedule::MainThreadExecutor, transform::TransformBundle,
 };
 use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, KinematicCharacterController, GravityScale, AdditionalMassProperties, KinematicCharacterControllerOutput};
 use leafwing_input_manager::{
@@ -24,9 +24,11 @@ use leafwing_input_manager::{
 pub struct PlayerBundle {
     health: Health,
     _p: Player,
-    controller: KinematicCharacterController,
     animation: SpriteAnimation,
     frame_time: FrameTime,
+
+    controller: KinematicCharacterController,
+    output: KinematicCharacterControllerOutput,
 
     #[bundle]
     input_manager: InputManagerBundle<PlayerInput>,
@@ -50,6 +52,7 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
         animation,
         frame_time: FrameTime(0.0),
         controller: KinematicCharacterController::default(),
+        output: KinematicCharacterControllerOutput::default(),
         input_manager: InputManagerBundle {
             input_map: PlayerInput::player_one(),
             ..Default::default()
@@ -91,64 +94,62 @@ impl PlayerInput {
 }
 
 pub const MOVE_SPEED: f32 = 300.0;
-pub const JUMP_FORCE: f32 = 500.0;
+pub const JUMP_FORCE: f32 = 80.0;
 
 pub fn move_player(
     mut player: Query<(&mut Velocity, &ActionState<PlayerInput>), With<Player>>,
 ) {
     let (mut velocity, input) = player.single_mut();
 
-    if input.just_pressed(PlayerInput::Left) {
+    if input.just_pressed(PlayerInput::Left) || input.pressed(PlayerInput::Left){
         velocity.linvel.x = -MOVE_SPEED;
-    } else if input.just_pressed(PlayerInput::Right) {
+    } else if input.just_pressed(PlayerInput::Right) || input.pressed(PlayerInput::Right) {
         velocity.linvel.x = MOVE_SPEED;
     } else if input.just_released(PlayerInput::Left) || input.just_released(PlayerInput::Right) {
         velocity.linvel.x = 0.;
     }
 }
 
-#[derive(Component, Reflect)]
-pub struct Jump(bool);
-
 pub fn jump(
-    mut input_query: Query<&ActionState<PlayerInput>, With<Player>>,
-    mut controllers: Query<(&mut KinematicCharacterController, &KinematicCharacterControllerOutput, &Velocity), With<Player>>,
+    input_query: Query<&ActionState<PlayerInput>, With<Player>>,
+    mut controllers: Query<(&mut KinematicCharacterController, &KinematicCharacterControllerOutput, &mut Velocity), With<Player>>,
     mut commands: Commands,
     time: Res<Time>
 ) {
     for input in input_query.iter() {
-        for (mut controller, k_output, velocity) in controllers.iter_mut() {
+        for (mut controller, k_output, mut velocity) in controllers.iter_mut() {
             match k_output.grounded {
-                true => if input.just_pressed(PlayerInput::Jump) {
-                    controller.translation = match controller.translation {
-                        Some(mut v) => {v.y += 20.0; Some(v)},
-                        None => Some(Vec2::new(0.0, 20.0))
-                    }
+                true => if input.pressed(PlayerInput::Jump) {
+                    velocity.linvel.y += 50.0 * time.delta_seconds();
                 } else {
                         controller.translation = match controller.translation {
-                            Some(mut v) => {v.y = -4.0; Some(v)},
-                            None => Some(Vec2::new(0.0, -4.0)),
+                            Some(mut v) => {v.y = -14.0; Some(v)},
+                            None => Some(Vec2::new(0.0, -14.0)),
                         }
                     }, 
                 false => {
-                    if input.just_released(PlayerInput::Jump) {
-                        controller.translation = match controller.translation {
-                            Some(mut v) => {v.y = -8.0; Some(v)},
-                            None => Some(Vec2::new(0.0, -8.0)),
-                        }
-                    } else if input.pressed(PlayerInput::Jump) {
-                        let has_held_jump_for_duration = input.current_duration(PlayerInput::Jump);
-                        if has_held_jump_for_duration >= Duration::from_secs(2) {
-                            controller.translation = match controller.translation {
-                                Some(mut v) => {v.y = -8.0; Some(v)},
-                                None => Some(Vec2::new(0.0, -8.0)),
-                            }
-                        }
-                    }
+                    if input.just_pressed(PlayerInput::Jump) {
+                        velocity.linvel.y += 25. * time.delta_seconds() * 1000.;
+                    } else if input.pressed(PlayerInput::Jump){
+                        velocity.linvel.y += time.delta_seconds() * 1000.;
+                    } else if input.just_released(PlayerInput::Jump) {
+                        velocity.linvel.y -= 5. * time.delta_seconds() * 1000.;
+                    } 
                 },
             } 
         }  
     }
 
+
+}
+
+pub fn check_borders(
+    mut player: Query<&mut Transform, With<Player>>,
+) {
+    let mut controller = player.single_mut(); 
+
+    if controller.translation.y < -400.0 {
+        controller.translation.y = 400.0;
+    }
 
 }

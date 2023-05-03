@@ -1,9 +1,6 @@
-use bevy::{prelude::{Component, Bundle}, reflect::Reflect};
+use bevy::prelude::Bundle;
 use bevy_ecs_ldtk::{LdtkIntCell, EntityInstance};
 use bevy_rapier2d::prelude::{RigidBody, Collider, LockedAxes, Velocity};
-
-#[derive(Component, Debug, Clone, Copy, Reflect)]
-pub struct Grounded(pub bool);
 
 #[derive(Bundle, Clone, Default, Debug, LdtkIntCell)]
 pub struct CollisionBundle {

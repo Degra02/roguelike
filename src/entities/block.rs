@@ -1,9 +1,10 @@
-use bevy::{prelude::Bundle, sprite::{SpriteSheetBundle, SpriteBundle}};
+use bevy::{prelude::{Bundle, Component, Entity}, sprite::{SpriteSheetBundle, SpriteBundle}};
 
 use super::collision::CollisionBundle;
 
 #[derive(Bundle)]
 pub struct BlockBundle {
+
     #[bundle]
    sprite: SpriteBundle,
 
@@ -16,6 +17,26 @@ impl BlockBundle {
         Self {
             sprite,
             collision,
+        }
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct Wall;
+
+#[derive(Bundle)]
+pub struct WallBundle {
+    _w: Wall,
+
+    #[bundle]
+    block_bundle: BlockBundle,
+}
+
+impl WallBundle {
+    pub fn new(block_bundle: BlockBundle) -> Self {
+        Self {
+            _w: Wall,
+            block_bundle,
         }
     }
 }

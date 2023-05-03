@@ -3,19 +3,18 @@ use animations::{
     sprite_animation::animate_sprite,
 };
 use bevy::{
-    prelude::{App, Camera2dBundle, Commands, Plugin},
+    prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2},
     DefaultPlugins,
 };
-use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection};
+use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkSystemSet};
 use bevy_editor_pls::prelude::EditorPlugin;
 // use bevy_inspector_egui_rapier::InspectableRapierPlugin;
 use bevy_rapier2d::{
-    prelude::{NoUserData, RapierPhysicsPlugin},
+    prelude::{NoUserData, RapierPhysicsPlugin, PhysicsSet, RapierConfiguration},
     render::RapierDebugRenderPlugin,
 };
 use entities::{
-    collision::Grounded,
-    player::{move_player, spawn_player, Jump, PlayerInput, jump},
+    player::{move_player, spawn_player, PlayerInput, jump, check_borders},
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
 use map::{spawn_map, setup};
@@ -30,11 +29,16 @@ fn main() {
         .add_plugin(StartupPlugin)
         .add_plugin(EditorPlugin::default())
         .add_plugin(InputManagerPlugin::<PlayerInput>::default())
-        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(16.))
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.))
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(LdtkPlugin)
         .insert_resource(LevelSelection::Index(0))
         .add_startup_system(setup)
+        .configure_set(LdtkSystemSet::ProcessApi.before(PhysicsSet::SyncBackend))
+        .insert_resource(RapierConfiguration {
+            gravity: Vec2::new(0.0, -2000.),
+            ..Default::default()
+        })
         .run()
 }
 
@@ -54,6 +58,7 @@ impl Plugin for PlayerPlugin {
         app.add_startup_system(spawn_player)
             .add_system(move_player)
             .add_system(jump)
+            .add_system(check_borders)
             .add_plugin(AnimationPlugin);
     }
 }
