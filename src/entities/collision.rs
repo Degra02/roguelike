@@ -23,7 +23,7 @@ impl CollisionBundle {
 
 impl From<&EntityInstance> for CollisionBundle {
     fn from(entity_instance: &EntityInstance) -> Self {
-        let rotation_constraints = LockedAxes::ROTATION_LOCKED;
+        let _rotation_constraints = LockedAxes::ROTATION_LOCKED;
 
         match entity_instance.identifier.as_ref() {
            "Player" => {

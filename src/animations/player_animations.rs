@@ -132,7 +132,7 @@ pub fn change_player_animation(
         sprite.flip_x = false;
     }
 
-    let mut set = if velocity.linvel.y > 0.01 {
+    let set = if velocity.linvel.y > 0.01 {
         Animation::Jump
     } else if velocity.linvel.y < -10. {
         Animation::Fall

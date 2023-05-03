@@ -1,7 +1,7 @@
-use std::time::Duration;
+
 
 use super::{
-    health::Health, collision::CollisionBundle, block::Wall,
+    health::Health, collision::CollisionBundle,
 };
 use crate::animations::{
     player_animations::{Animation, PlayerAnimations},
@@ -9,12 +9,11 @@ use crate::animations::{
 };
 use bevy::{
     prelude::{
-        error, Bundle, Changed, Commands, Component, Entity, KeyCode, Query, Res, With, Vec2, Transform,
+        error, Bundle, Commands, Component, KeyCode, Query, Res, With, Vec2, Transform,
     },
-    reflect::Reflect,
-    sprite::{SpriteSheetBundle, TextureAtlasSprite}, time::Time, ecs::schedule::MainThreadExecutor, transform::TransformBundle,
+    sprite::{SpriteSheetBundle, TextureAtlasSprite}, time::Time,
 };
-use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, KinematicCharacterController, GravityScale, AdditionalMassProperties, KinematicCharacterControllerOutput};
+use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, KinematicCharacterController, KinematicCharacterControllerOutput};
 use leafwing_input_manager::{
     prelude::{ActionState, InputMap},
     Actionlike, InputManagerBundle,
@@ -113,7 +112,7 @@ pub fn move_player(
 pub fn jump(
     input_query: Query<&ActionState<PlayerInput>, With<Player>>,
     mut controllers: Query<(&mut KinematicCharacterController, &KinematicCharacterControllerOutput, &mut Velocity), With<Player>>,
-    mut commands: Commands,
+    _commands: Commands,
     time: Res<Time>
 ) {
     for input in input_query.iter() {

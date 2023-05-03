@@ -1,4 +1,4 @@
-use bevy::{prelude::{Bundle, Component, Entity}, sprite::{SpriteSheetBundle, SpriteBundle}};
+use bevy::{prelude::{Bundle, Component}, sprite::{SpriteBundle}};
 
 use super::collision::CollisionBundle;
 
