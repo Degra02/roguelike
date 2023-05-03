@@ -3,9 +3,9 @@ use bevy::{
     sprite::{Sprite, SpriteBundle},
 };
 use bevy_ecs_ldtk::LdtkWorldBundle;
-use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity};
+use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, GravityScale};
 
-use crate::entities::{block::{BlockBundle, WallBundle}, collision::CollisionBundle};
+use crate::entities::{blocks::{BlockBundle, WallBundle}, collision::CollisionBundle};
 
 pub fn spawn_map(mut commands: Commands) {
     let floor = WallBundle::new( BlockBundle::new(
@@ -18,7 +18,7 @@ pub fn spawn_map(mut commands: Commands) {
             transform: Transform::from_xyz(0., -100., 0.),
             ..Default::default()
         },
-        CollisionBundle::new(RigidBody::Fixed, Collider::cuboid(100., 2.5), LockedAxes::ROTATION_LOCKED_Z, Velocity::default())));
+        CollisionBundle::new(RigidBody::Fixed, Collider::cuboid(100., 2.5), LockedAxes::ROTATION_LOCKED_Z, Velocity::default(), GravityScale(0.))));
 
     let block = BlockBundle::new(
         SpriteBundle {
@@ -30,7 +30,7 @@ pub fn spawn_map(mut commands: Commands) {
             transform: Transform::from_xyz(0., -20., 0.),
             ..Default::default()
         },
-        CollisionBundle::new(RigidBody::Fixed, Collider::cuboid(10., 10.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default()));
+        CollisionBundle::new(RigidBody::Fixed, Collider::cuboid(10., 10.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default(), GravityScale(0.0)));
 
 
     commands.spawn(floor);

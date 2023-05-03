@@ -13,7 +13,7 @@ use bevy::{
     },
     sprite::{SpriteSheetBundle, TextureAtlasSprite}, time::Time,
 };
-use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, KinematicCharacterController, KinematicCharacterControllerOutput};
+use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, KinematicCharacterController, KinematicCharacterControllerOutput, GravityScale};
 use leafwing_input_manager::{
     prelude::{ActionState, InputMap},
     Actionlike, InputManagerBundle,
@@ -64,7 +64,7 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
             texture_atlas,
             ..SpriteSheetBundle::default()
         },
-        collision: CollisionBundle::new(RigidBody::Dynamic, Collider::cuboid(9., 16.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default()),
+        collision: CollisionBundle::new(RigidBody::Dynamic, Collider::cuboid(9., 16.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default(), GravityScale(1.0)),
     };
 
     commands.spawn(player_bundle);
@@ -130,7 +130,7 @@ pub fn jump(
                     if input.just_pressed(PlayerInput::Jump) {
                         velocity.linvel.y += 25. * time.delta_seconds() * 1000.;
                     } else if input.pressed(PlayerInput::Jump){
-                        velocity.linvel.y += time.delta_seconds() * 1000.;
+                        velocity.linvel.y += 2. * time.delta_seconds() * 1000.;
                     } else if input.just_released(PlayerInput::Jump) {
                         velocity.linvel.y -= 5. * time.delta_seconds() * 1000.;
                     } 

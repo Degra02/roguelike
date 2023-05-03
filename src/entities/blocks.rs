@@ -1,8 +1,9 @@
 use bevy::{prelude::{Bundle, Component}, sprite::{SpriteBundle}};
+use bevy_ecs_ldtk::LdtkIntCell;
 
 use super::collision::CollisionBundle;
 
-#[derive(Bundle)]
+#[derive(Clone, Default, Bundle)]
 pub struct BlockBundle {
 
     #[bundle]
@@ -21,10 +22,10 @@ impl BlockBundle {
     }
 }
 
-#[derive(Debug, Component)]
+#[derive(Clone, Default, Debug, Component)]
 pub struct Wall;
 
-#[derive(Bundle)]
+#[derive(Clone, Default, Bundle, LdtkIntCell)]
 pub struct WallBundle {
     _w: Wall,
 
@@ -39,4 +40,12 @@ impl WallBundle {
             block_bundle,
         }
     }
+}
+
+#[derive(Clone, Default, Debug, Component)]
+pub struct Climbable;
+
+#[derive(Bundle, Default, Clone, LdtkIntCell)]
+pub struct LadderBundle {
+    climbable: Climbable,
 }

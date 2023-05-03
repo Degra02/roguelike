@@ -1,22 +1,30 @@
 use bevy::prelude::Bundle;
 use bevy_ecs_ldtk::{LdtkIntCell, EntityInstance};
-use bevy_rapier2d::prelude::{RigidBody, Collider, LockedAxes, Velocity};
+use bevy_rapier2d::prelude::{RigidBody, Collider, LockedAxes, Velocity, GravityScale};
 
-#[derive(Bundle, Clone, Default, Debug, LdtkIntCell)]
+#[derive(Bundle, Clone, Debug, LdtkIntCell)]
 pub struct CollisionBundle {
    rigid_body: RigidBody,
     collider: Collider,
     locked_axes: LockedAxes, 
     velocity: Velocity,
+    gravity_scale: GravityScale,
 } 
 
+impl Default for CollisionBundle {
+    fn default() -> Self {
+        Self { rigid_body: RigidBody::Fixed, collider: Default::default(), locked_axes: Default::default(), velocity: Default::default(), gravity_scale: GravityScale(0.0) }
+    }
+}
+
 impl CollisionBundle {
-    pub fn new(rigid_body: RigidBody, collider: Collider, locked_axes: LockedAxes, velocity: Velocity) -> Self {
+    pub fn new(rigid_body: RigidBody, collider: Collider, locked_axes: LockedAxes, velocity: Velocity, gravity_scale: GravityScale) -> Self {
         Self {
             rigid_body,
             collider,
             locked_axes,
-            velocity
+            velocity,
+            gravity_scale,
         }
     }
 }

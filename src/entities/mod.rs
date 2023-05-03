@@ -1,4 +1,4 @@
 pub mod health;
 pub mod player;
 pub mod collision;
-pub mod block;
+pub mod blocks;

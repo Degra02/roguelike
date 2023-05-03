@@ -6,7 +6,7 @@ use bevy::{
     prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2},
     DefaultPlugins,
 };
-use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkSystemSet};
+use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkSystemSet, prelude::LdtkIntCellAppExt};
 use bevy_editor_pls::prelude::EditorPlugin;
 // use bevy_inspector_egui_rapier::InspectableRapierPlugin;
 use bevy_rapier2d::{
@@ -14,7 +14,7 @@ use bevy_rapier2d::{
     render::RapierDebugRenderPlugin,
 };
 use entities::{
-    player::{move_player, spawn_player, PlayerInput, jump, check_borders},
+    player::{move_player, spawn_player, PlayerInput, jump, check_borders}, blocks::WallBundle,
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
 use map::{spawn_map, setup};
@@ -39,6 +39,7 @@ fn main() {
             gravity: Vec2::new(0.0, -2000.),
             ..Default::default()
         })
+        .register_ldtk_int_cell::<WallBundle>(1)
         .run()
 }
 
