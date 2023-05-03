@@ -1,3 +1,4 @@
 pub mod health;
 pub mod player;
-pub mod hit_box;
+pub mod collision;
+pub mod block;

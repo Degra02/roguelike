@@ -118,7 +118,6 @@ pub fn change_player_animation(
             &mut Handle<TextureAtlas>,
             &mut SpriteAnimation,
             &mut TextureAtlasSprite,
-            &Jump,
             &Velocity,
         ),
         With<Player>,
@@ -126,10 +125,10 @@ pub fn change_player_animation(
     _input: Res<Input<KeyCode>>,
     animations: Res<PlayerAnimations>,
 ) {
-    let (mut atlas, mut animation, mut sprite, _jump, velocity) = player.single_mut();
+    let (mut atlas, mut animation, mut sprite, velocity) = player.single_mut();
     if velocity.linvel.x < 0. {
         sprite.flip_x = true;
-    } else if velocity.linvel.x >= 0. {
+    } else if velocity.linvel.x > 0. {
         sprite.flip_x = false;
     }
 

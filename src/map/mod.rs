@@ -1,11 +1,14 @@
 use bevy::{
-    prelude::{Color, Commands, Transform, Vec2},
+    prelude::{Color, Commands, Transform, Vec2, AssetServer, Res},
     sprite::{Sprite, SpriteBundle},
 };
+use bevy_ecs_ldtk::LdtkWorldBundle;
 use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity};
 
+use crate::entities::{block::BlockBundle, collision::CollisionBundle};
+
 pub fn spawn_map(mut commands: Commands) {
-    commands.spawn((
+    let floor = BlockBundle::new(
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::new(200., 5.)),
@@ -15,9 +18,15 @@ pub fn spawn_map(mut commands: Commands) {
             transform: Transform::from_xyz(0., -100., 0.),
             ..Default::default()
         },
-        RigidBody::Fixed,
-        Velocity::default(),
-        Collider::cuboid(100., 2.5),
-        LockedAxes::ROTATION_LOCKED_Z,
-    ));
+        CollisionBundle::new(RigidBody::Fixed, Collider::cuboid(100., 2.5), LockedAxes::ROTATION_LOCKED_Z, Velocity::default()));
+
+    commands.spawn(floor);
+}
+
+pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+   let ldtk_handle = asset_server.load("/usr/share/ldtk/extraFiles/samples/Typical_2D_platformer_example.ldtk"); 
+    commands.spawn(LdtkWorldBundle{
+        ldtk_handle,
+        ..Default::default()
+    });
 }

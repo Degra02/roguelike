@@ -1,18 +1,20 @@
+use std::time::Duration;
+
 use super::{
-    health::Health, hit_box::Grounded,
+    health::Health, collision::{Grounded, CollisionBundle},
 };
 use crate::animations::{
     player_animations::{Animation, PlayerAnimations},
-    sprite_animation::FrameTime,
+    sprite_animation::{FrameTime, SpriteAnimation},
 };
 use bevy::{
     prelude::{
-        error, Bundle, Changed, Commands, Component, Entity, KeyCode, Query, Res, With,
+        error, Bundle, Changed, Commands, Component, Entity, KeyCode, Query, Res, With, Vec2,
     },
     reflect::Reflect,
-    sprite::{SpriteSheetBundle, TextureAtlasSprite},
+    sprite::{SpriteSheetBundle, TextureAtlasSprite}, time::Time, ecs::schedule::MainThreadExecutor,
 };
-use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity};
+use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, KinematicCharacterController, GravityScale, AdditionalMassProperties, KinematicCharacterControllerOutput};
 use leafwing_input_manager::{
     prelude::{ActionState, InputMap},
     Actionlike, InputManagerBundle,
@@ -22,9 +24,18 @@ use leafwing_input_manager::{
 pub struct PlayerBundle {
     health: Health,
     _p: Player,
+    controller: KinematicCharacterController,
+    animation: SpriteAnimation,
+    frame_time: FrameTime,
+
+    #[bundle]
+    input_manager: InputManagerBundle<PlayerInput>,
 
     #[bundle]
     sprite: SpriteSheetBundle,
+
+    #[bundle]
+    collision: CollisionBundle
 }
 
 #[derive(Component)]
@@ -33,8 +44,17 @@ pub struct Player;
 pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
     let Some((texture_atlas, animation)) = animations.get(Animation::Idle) else { error!("Failed to find animation: Idle"); return;};
 
-    commands.spawn((
-        SpriteSheetBundle {
+    let player_bundle = PlayerBundle {
+        health: Health::new(4),
+        _p: Player,
+        animation,
+        frame_time: FrameTime(0.0),
+        controller: KinematicCharacterController::default(),
+        input_manager: InputManagerBundle {
+            input_map: PlayerInput::player_one(),
+            ..Default::default()
+        },
+        sprite: SpriteSheetBundle {
             sprite: TextureAtlasSprite {
                 index: 0,
                 ..Default::default()
@@ -42,20 +62,10 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
             texture_atlas,
             ..SpriteSheetBundle::default()
         },
-        Player,
-        animation,
-        FrameTime(0.0),
-        Grounded(true),
-        InputManagerBundle {
-            input_map: PlayerInput::player_one(),
-            ..Default::default()
-        },
-        Jump(false),
-        RigidBody::Dynamic,
-        Velocity::default(),
-        Collider::cuboid(9., 16.),
-        LockedAxes::ROTATION_LOCKED_Z,
-    ));
+        collision: CollisionBundle::new(RigidBody::Dynamic, Collider::cuboid(9., 16.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default()),
+    };
+
+    commands.spawn(player_bundle);
 }
 
 #[derive(Debug, Actionlike, Clone)]
@@ -73,6 +83,7 @@ impl PlayerInput {
             (KeyCode::A, PlayerInput::Left),
             (KeyCode::D, PlayerInput::Right),
             (KeyCode::Space, PlayerInput::Jump),
+            (KeyCode::S, PlayerInput::Fall)
         ]);
 
         map
@@ -80,17 +91,14 @@ impl PlayerInput {
 }
 
 pub const MOVE_SPEED: f32 = 300.0;
+pub const JUMP_FORCE: f32 = 500.0;
 
 pub fn move_player(
-    mut player: Query<(&mut Velocity, &ActionState<PlayerInput>, &Grounded), With<Player>>,
+    mut player: Query<(&mut Velocity, &ActionState<PlayerInput>), With<Player>>,
 ) {
-    let (mut velocity, input, grounded) = player.single_mut();
+    let (mut velocity, input) = player.single_mut();
 
-    if input.just_pressed(PlayerInput::Jump) && grounded.0 {
-        velocity.linvel.y = 600.;
-    } else if input.just_pressed(PlayerInput::Fall) {
-        velocity.linvel.y = velocity.linvel.y.min(0.);
-    } else if input.just_pressed(PlayerInput::Left) {
+    if input.just_pressed(PlayerInput::Left) {
         velocity.linvel.x = -MOVE_SPEED;
     } else if input.just_pressed(PlayerInput::Right) {
         velocity.linvel.x = MOVE_SPEED;
@@ -102,25 +110,45 @@ pub fn move_player(
 #[derive(Component, Reflect)]
 pub struct Jump(bool);
 
-pub fn double_jump(
-    mut player: Query<(&mut Jump, &mut Velocity, &ActionState<PlayerInput>), With<Player>>,
-    can_jump: Query<(Entity, &Grounded), Changed<Grounded>>,
+pub fn jump(
+    mut input_query: Query<&ActionState<PlayerInput>, With<Player>>,
+    mut controllers: Query<(&mut KinematicCharacterController, &KinematicCharacterControllerOutput, &Velocity), With<Player>>,
+    mut commands: Commands,
+    time: Res<Time>
 ) {
-    for (entity, grounded) in &can_jump {
-        if let Ok((mut jump, _, _)) = player.get_mut(entity) {
-            if grounded.0 {
-                jump.0 = true;
-            }
-        }
+    for input in input_query.iter() {
+        for (mut controller, k_output, velocity) in controllers.iter_mut() {
+            match k_output.grounded {
+                true => if input.just_pressed(PlayerInput::Jump) {
+                    controller.translation = match controller.translation {
+                        Some(mut v) => {v.y += 20.0; Some(v)},
+                        None => Some(Vec2::new(0.0, 20.0))
+                    }
+                } else {
+                        controller.translation = match controller.translation {
+                            Some(mut v) => {v.y = -4.0; Some(v)},
+                            None => Some(Vec2::new(0.0, -4.0)),
+                        }
+                    }, 
+                false => {
+                    if input.just_released(PlayerInput::Jump) {
+                        controller.translation = match controller.translation {
+                            Some(mut v) => {v.y = -8.0; Some(v)},
+                            None => Some(Vec2::new(0.0, -8.0)),
+                        }
+                    } else if input.pressed(PlayerInput::Jump) {
+                        let has_held_jump_for_duration = input.current_duration(PlayerInput::Jump);
+                        if has_held_jump_for_duration >= Duration::from_secs(2) {
+                            controller.translation = match controller.translation {
+                                Some(mut v) => {v.y = -8.0; Some(v)},
+                                None => Some(Vec2::new(0.0, -8.0)),
+                            }
+                        }
+                    }
+                },
+            } 
+        }  
     }
 
-    for (mut jump, mut velocity, input) in player.iter_mut() {
-        if velocity.linvel.y.abs() < 0.01 {
-            return;
-        }
-        if input.just_pressed(PlayerInput::Jump) && jump.0 {
-            jump.0 = false;
-            velocity.linvel.y = 100.;
-        }
-    }
+
 }
