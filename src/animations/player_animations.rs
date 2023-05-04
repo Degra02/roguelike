@@ -32,33 +32,33 @@ impl FromWorld for PlayerAnimations {
         };
         let asset_server = world.resource::<AssetServer>();
         let idle_atlas = TextureAtlas::from_grid(
-            asset_server.load("Main Characters/Mask Dude/Idle (32x32).png"),
-            Vec2::splat(32.),
-            11,
+            asset_server.load("GoldenDude/idle_128x128.png"),
+            Vec2::splat(128.),
+            1,
             1,
             None,
             None,
         );
         let run_atlas = TextureAtlas::from_grid(
-            asset_server.load("Main Characters/Mask Dude/Run (32x32).png"),
-            Vec2::splat(32.),
-            12,
+            asset_server.load("GoldenDude/run_128x128.png"),
+            Vec2::splat(128.),
+            8,
             1,
             None,
             None,
         );
         let jump_atlas = TextureAtlas::from_grid(
-            asset_server.load("Main Characters/Mask Dude/Jump (32x32).png"),
-            Vec2::splat(32.),
-            1,
+            asset_server.load("GoldenDude/jump_128x128.png"),
+            Vec2::splat(128.),
+            6,
             1,
             None,
             None,
         );
         let fall_atlas = TextureAtlas::from_grid(
-            asset_server.load("Main Characters/Mask Dude/Fall (32x32).png"),
-            Vec2::splat(32.),
-            1,
+            asset_server.load("GoldenDude/fall_128x128.png"),
+            Vec2::splat(128.),
+            3,
             1,
             None,
             None,
@@ -69,7 +69,7 @@ impl FromWorld for PlayerAnimations {
             Animation::Idle,
             texture_atlas.add(idle_atlas),
             SpriteAnimation {
-                len: 11,
+                len: 1,
                 frame_time: 1. / 10.,
             },
         );
@@ -77,7 +77,7 @@ impl FromWorld for PlayerAnimations {
             Animation::Run,
             texture_atlas.add(run_atlas),
             SpriteAnimation {
-                len: 12,
+                len: 8,
                 frame_time: 1. / 10.,
             },
         );
@@ -85,16 +85,16 @@ impl FromWorld for PlayerAnimations {
             Animation::Jump,
             texture_atlas.add(jump_atlas),
             SpriteAnimation {
-                len: 1,
-                frame_time: 1.,
+                len: 6,
+                frame_time: 1. / 4.,
             },
         );
         map.add(
             Animation::Fall,
             texture_atlas.add(fall_atlas),
             SpriteAnimation {
-                len: 1,
-                frame_time: 1.,
+                len: 3,
+                frame_time: 1. / 3.,
             },
         );
 

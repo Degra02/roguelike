@@ -9,7 +9,7 @@ use crate::animations::{
 };
 use bevy::{
     prelude::{
-        error, Bundle, Commands, Component, KeyCode, Query, Res, With, Vec2, Transform,
+        error, Bundle, Commands, Component, KeyCode, Query, Res, With, Vec2, Transform, Vec3,
     },
     sprite::{SpriteSheetBundle, TextureAtlasSprite}, time::Time,
 };
@@ -68,9 +68,10 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
                 ..Default::default()
             },
             texture_atlas,
+            transform: Transform::from_scale(Vec3::splat(0.25)),
             ..SpriteSheetBundle::default()
         },
-        collision: CollisionBundle::new(RigidBody::Dynamic, Collider::cuboid(9., 16.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default(), GravityScale(1.0)),
+        collision: CollisionBundle::new(RigidBody::Dynamic, Collider::cuboid(36., 55.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default(), GravityScale(1.0)),
     };
 
     commands.spawn(player_bundle);
@@ -112,9 +113,11 @@ pub fn move_player(
     } else if input.just_pressed(PlayerInput::Right) || input.pressed(PlayerInput::Right) {
         velocity.linvel.x = MOVE_SPEED;
     } else if input.just_released(PlayerInput::Left) {
-        velocity.linvel.x += 100. * time.delta_seconds(); 
+        velocity.linvel.x += 30. * input.current_duration(PlayerInput::Left).as_secs_f32();
+        velocity.linvel.x = 0.0;
     } else if input.just_released(PlayerInput::Right) {
-        velocity.linvel.x -= 100. * time.delta_seconds();
+        velocity.linvel.x -= 3000. * time.delta_seconds();
+        velocity.linvel.x = 0.0;
     }
 }
 
