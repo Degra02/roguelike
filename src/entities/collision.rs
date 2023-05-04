@@ -1,8 +1,8 @@
-use bevy::prelude::Bundle;
+use bevy::prelude::{Bundle, Resource};
 use bevy_ecs_ldtk::{LdtkIntCell, EntityInstance};
 use bevy_rapier2d::prelude::{RigidBody, Collider, LockedAxes, Velocity, GravityScale};
 
-#[derive(Bundle, Clone, Debug, LdtkIntCell)]
+#[derive(Bundle, Clone, Debug, LdtkIntCell, Resource)]
 pub struct CollisionBundle {
    rigid_body: RigidBody,
     collider: Collider,

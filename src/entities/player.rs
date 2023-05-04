@@ -19,12 +19,17 @@ use leafwing_input_manager::{
     Actionlike, InputManagerBundle,
 };
 
+#[derive(Component, Default, Debug, Clone)]
+pub struct Jumped(pub bool);
+
 #[derive(Bundle)]
 pub struct PlayerBundle {
     health: Health,
     _p: Player,
     animation: SpriteAnimation,
     frame_time: FrameTime,
+
+    jumped: Jumped,
 
     controller: KinematicCharacterController,
     output: KinematicCharacterControllerOutput,
@@ -50,6 +55,7 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
         _p: Player,
         animation,
         frame_time: FrameTime(0.0),
+        jumped: Jumped(false),
         controller: KinematicCharacterController::default(),
         output: KinematicCharacterControllerOutput::default(),
         input_manager: InputManagerBundle {
@@ -97,6 +103,7 @@ pub const JUMP_FORCE: f32 = 80.0;
 
 pub fn move_player(
     mut player: Query<(&mut Velocity, &ActionState<PlayerInput>), With<Player>>,
+    time: Res<Time>,
 ) {
     let (mut velocity, input) = player.single_mut();
 
@@ -104,19 +111,21 @@ pub fn move_player(
         velocity.linvel.x = -MOVE_SPEED;
     } else if input.just_pressed(PlayerInput::Right) || input.pressed(PlayerInput::Right) {
         velocity.linvel.x = MOVE_SPEED;
-    } else if input.just_released(PlayerInput::Left) || input.just_released(PlayerInput::Right) {
-        velocity.linvel.x = 0.;
+    } else if input.just_released(PlayerInput::Left) {
+        velocity.linvel.x += 100. * time.delta_seconds(); 
+    } else if input.just_released(PlayerInput::Right) {
+        velocity.linvel.x -= 100. * time.delta_seconds();
     }
 }
 
 pub fn jump(
     input_query: Query<&ActionState<PlayerInput>, With<Player>>,
-    mut controllers: Query<(&mut KinematicCharacterController, &KinematicCharacterControllerOutput, &mut Velocity), With<Player>>,
+    mut controllers: Query<(&mut KinematicCharacterController, &KinematicCharacterControllerOutput, &mut Velocity, &mut Jumped), With<Player>>,
     _commands: Commands,
     time: Res<Time>
 ) {
     for input in input_query.iter() {
-        for (mut controller, k_output, mut velocity) in controllers.iter_mut() {
+        for (mut controller, k_output, mut velocity, mut jumped) in controllers.iter_mut() {
             match k_output.grounded {
                 true => if input.pressed(PlayerInput::Jump) {
                     velocity.linvel.y += 50.0 * time.delta_seconds();
@@ -127,13 +136,18 @@ pub fn jump(
                         }
                     }, 
                 false => {
-                    if input.just_pressed(PlayerInput::Jump) {
+                    if input.just_pressed(PlayerInput::Jump) && jumped.0 == false {
                         velocity.linvel.y += 25. * time.delta_seconds() * 1000.;
-                    } else if input.pressed(PlayerInput::Jump){
+                        jumped.0 = true;
+                    } else if input.pressed(PlayerInput::Jump) && input.current_duration(PlayerInput::Jump).as_millis() < 180 {
                         velocity.linvel.y += 2. * time.delta_seconds() * 1000.;
                     } else if input.just_released(PlayerInput::Jump) {
                         velocity.linvel.y -= 5. * time.delta_seconds() * 1000.;
                     } 
+
+                    if velocity.linvel.y == 0.0 {
+                        jumped.0 = false;
+                    }
                 },
             } 
         }  

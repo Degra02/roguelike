@@ -3,7 +3,7 @@ use animations::{
     sprite_animation::animate_sprite,
 };
 use bevy::{
-    prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2},
+    prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2, Camera},
     DefaultPlugins,
 };
 use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkSystemSet, prelude::LdtkIntCellAppExt};
@@ -14,7 +14,7 @@ use bevy_rapier2d::{
     render::RapierDebugRenderPlugin,
 };
 use entities::{
-    player::{move_player, spawn_player, PlayerInput, jump, check_borders}, blocks::WallBundle,
+    player::{move_player, spawn_player, PlayerInput, jump, check_borders}, blocks::WallBundle, collision::CollisionBundle,
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
 use map::{spawn_map, setup};
@@ -75,5 +75,7 @@ impl Plugin for AnimationPlugin {
 }
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
+    let mut camera_bundle = Camera2dBundle::default();
+    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(500.); 
+    commands.spawn(camera_bundle);
 }
