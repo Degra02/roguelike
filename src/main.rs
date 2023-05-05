@@ -3,10 +3,10 @@ use animations::{
     sprite_animation::animate_sprite,
 };
 use bevy::{
-    prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2, Camera},
+    prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2, Camera, Transform, With, Query, Without, Component},
     DefaultPlugins,
 };
-use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkSystemSet, prelude::LdtkIntCellAppExt};
+use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkSystemSet, prelude::LdtkIntCellAppExt, LdtkSettings, LevelSpawnBehavior, SetClearColor};
 use bevy_editor_pls::prelude::EditorPlugin;
 // use bevy_inspector_egui_rapier::InspectableRapierPlugin;
 use bevy_rapier2d::{
@@ -14,7 +14,7 @@ use bevy_rapier2d::{
     render::RapierDebugRenderPlugin,
 };
 use entities::{
-    player::{move_player, spawn_player, PlayerInput, jump, check_borders}, blocks::WallBundle, collision::CollisionBundle,
+    player::{move_player, spawn_player, PlayerInput, jump, check_borders, Player}, blocks::WallBundle, collision::CollisionBundle,
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
 use map::{spawn_map, setup};
@@ -32,6 +32,11 @@ fn main() {
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.))
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(LdtkPlugin)
+        .insert_resource(LdtkSettings {
+            level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation { load_level_neighbors: true },
+            set_clear_color: SetClearColor::FromLevelBackground,
+            ..Default::default()
+        })
         .insert_resource(LevelSelection::Index(0))
         .add_startup_system(setup)
         .configure_set(LdtkSystemSet::ProcessApi.before(PhysicsSet::SyncBackend))
@@ -48,6 +53,7 @@ pub struct StartupPlugin;
 impl Plugin for StartupPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_systems((spawn_camera, spawn_map))
+            .add_system(camera_follow_player)
            .add_plugin(PlayerPlugin);
     }
 }
@@ -74,8 +80,22 @@ impl Plugin for AnimationPlugin {
     }
 }
 
+#[derive(Component)]
+struct CameraTest;
+
 fn spawn_camera(mut commands: Commands) {
     let mut camera_bundle = Camera2dBundle::default();
-    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(500.); 
-    commands.spawn(camera_bundle);
+    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(300.); 
+    commands.spawn(camera_bundle).insert(CameraTest);
+}
+
+/// This is really rudimentary, but it works for now.
+fn camera_follow_player(
+    query: Query<&Transform, With<Player>>,
+    mut camera_query: Query<(&CameraTest, &mut Transform), Without<Player>>,
+) {
+    let player_transform = query.single();
+    let (_, mut camera_transform) = camera_query.single_mut();
+    camera_transform.translation.x = player_transform.translation.x;
+    camera_transform.translation.y = player_transform.translation.y;
 }

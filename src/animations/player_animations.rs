@@ -18,6 +18,7 @@ pub enum Animation {
     Idle,
     Jump,
     Fall,
+    Crouch,
 }
 
 #[derive(Resource)]
@@ -63,6 +64,8 @@ impl FromWorld for PlayerAnimations {
             None,
             None,
         );
+        let crouch_atlas = TextureAtlas::from_grid(asset_server.load("GoldenDude/crouch_128x128.png"), 
+            Vec2::splat(128.), 1, 1, None, None);
 
         let mut texture_atlas = world.resource_mut::<Assets<TextureAtlas>>();
         map.add(
@@ -97,6 +100,7 @@ impl FromWorld for PlayerAnimations {
                 frame_time: 1. / 3.,
             },
         );
+        map.add(Animation::Crouch, texture_atlas.add(crouch_atlas), SpriteAnimation { len: 1, frame_time: 1. });
 
         map
     }
@@ -138,7 +142,9 @@ pub fn change_player_animation(
         Animation::Fall
     } else if velocity.linvel.x != 0. {
         Animation::Run
-    } else {
+    } else if _input.pressed(KeyCode::S){
+        Animation::Crouch
+    }else {
         Animation::Idle
     };
 

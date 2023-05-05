@@ -13,7 +13,7 @@ pub struct CollisionBundle {
 
 impl Default for CollisionBundle {
     fn default() -> Self {
-        Self { rigid_body: RigidBody::Fixed, collider: Default::default(), locked_axes: Default::default(), velocity: Default::default(), gravity_scale: GravityScale(0.0) }
+        Self { rigid_body: RigidBody::Fixed, collider: Collider::cuboid(16., 16.), locked_axes: Default::default(), velocity: Default::default(), gravity_scale: GravityScale(0.0) }
     }
 }
 

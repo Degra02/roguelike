@@ -1,3 +1,5 @@
+pub mod generator;
+
 use bevy::{
     prelude::{Color, Commands, Transform, Vec2, AssetServer, Res},
     sprite::{Sprite, SpriteBundle},

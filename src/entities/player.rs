@@ -13,7 +13,7 @@ use bevy::{
     },
     sprite::{SpriteSheetBundle, TextureAtlasSprite}, time::Time,
 };
-use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, KinematicCharacterController, KinematicCharacterControllerOutput, GravityScale};
+use bevy_rapier2d::prelude::{Collider, LockedAxes, RigidBody, Velocity, KinematicCharacterController, KinematicCharacterControllerOutput, GravityScale, CharacterAutostep, CharacterLength};
 use leafwing_input_manager::{
     prelude::{ActionState, InputMap},
     Actionlike, InputManagerBundle,
@@ -56,7 +56,14 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
         animation,
         frame_time: FrameTime(0.0),
         jumped: Jumped(false),
-        controller: KinematicCharacterController::default(),
+        controller: KinematicCharacterController {
+            autostep: Some(CharacterAutostep {
+                max_height: CharacterLength::Relative(0.1),
+                min_width: CharacterLength::Relative(0.0),
+                include_dynamic_bodies: true,
+            }),
+            ..Default::default()
+        },
         output: KinematicCharacterControllerOutput::default(),
         input_manager: InputManagerBundle {
             input_map: PlayerInput::player_one(),
@@ -83,6 +90,7 @@ pub enum PlayerInput {
     Right,
     Jump,
     Fall,
+    Crouch,
 }
 
 impl PlayerInput {
@@ -92,7 +100,7 @@ impl PlayerInput {
             (KeyCode::A, PlayerInput::Left),
             (KeyCode::D, PlayerInput::Right),
             (KeyCode::Space, PlayerInput::Jump),
-            (KeyCode::S, PlayerInput::Fall)
+            (KeyCode::S, PlayerInput::Crouch)
         ]);
 
         map
