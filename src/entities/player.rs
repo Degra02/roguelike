@@ -8,7 +8,7 @@ use crate::{
 };
 use bevy::{
     prelude::{
-        error, Bundle, Camera, Commands, Component, KeyCode, Query, Res, Transform, Vec2, Vec3,
+        error, Bundle, Commands, Component, KeyCode, Query, Res, Transform, Vec2, Vec3,
         With,
     },
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
