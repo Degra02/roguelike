@@ -1,7 +1,8 @@
-
 #[derive(Debug, Clone, Copy)]
 pub enum Directions {
-    Down, Right, Left
+    Down,
+    Right,
+    Left,
 }
 
 #[derive(Debug, Clone)]
@@ -23,21 +24,35 @@ impl Map {
             main_path: generate_main_path(width, height, start),
         }
     }
-
-
 }
 
 pub fn generate_main_path(width: u32, height: u32, start: (u32, u32)) -> Vec<Directions> {
     let mut path = Vec::<Directions>::new();
-    
+
     let mut current_height = start.1;
     let mut current_width = start.0;
 
-    while current_height != height -1 {
+    while current_height != height - 1 {
         let direction = match rand::random::<u32>() % 3 {
             0 => Directions::Down,
-            1 => if current_width != width -1 {current_width += 1; Directions::Right} else {current_width -= 1; Directions::Left},
-            2 => if current_width != 0 {current_width -= 1; Directions::Left} else {current_width += 1; Directions::Right},
+            1 => {
+                if current_width != width - 1 {
+                    current_width += 1;
+                    Directions::Right
+                } else {
+                    current_width -= 1;
+                    Directions::Left
+                }
+            }
+            2 => {
+                if current_width != 0 {
+                    current_width -= 1;
+                    Directions::Left
+                } else {
+                    current_width += 1;
+                    Directions::Right
+                }
+            }
             _ => panic!("This should never happen"),
         };
 
@@ -46,7 +61,7 @@ pub fn generate_main_path(width: u32, height: u32, start: (u32, u32)) -> Vec<Dir
         match direction {
             Directions::Down => current_height += 1,
             _ => (),
-        }  
+        }
     }
 
     path

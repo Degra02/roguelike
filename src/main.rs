@@ -3,21 +3,31 @@ use animations::{
     sprite_animation::animate_sprite,
 };
 use bevy::{
-    prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2, Transform, With, Query, Without, Component},
+    prelude::{
+        App, Camera2dBundle, Commands, Component, IntoSystemSetConfig, Plugin, Query, Transform,
+        Vec2, With, Without,
+    },
     DefaultPlugins,
 };
-use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkSystemSet, prelude::LdtkIntCellAppExt, LdtkSettings, LevelSpawnBehavior, SetClearColor};
+use bevy_ecs_ldtk::{
+    prelude::LdtkIntCellAppExt, LdtkPlugin, LdtkSettings, LdtkSystemSet, LevelSelection,
+    LevelSpawnBehavior, SetClearColor,
+};
 use bevy_editor_pls::prelude::EditorPlugin;
 // use bevy_inspector_egui_rapier::InspectableRapierPlugin;
 use bevy_rapier2d::{
-    prelude::{NoUserData, RapierPhysicsPlugin, PhysicsSet, RapierConfiguration},
+    prelude::{NoUserData, PhysicsSet, RapierConfiguration, RapierPhysicsPlugin},
     render::RapierDebugRenderPlugin,
 };
 use entities::{
-    player::{move_player, spawn_player, PlayerInput, jump, check_borders, Player, check_player_collisions, check_terminal_velocity}, blocks::WallBundle,
+    blocks::WallBundle,
+    player::{
+        check_borders, check_player_collisions, check_terminal_velocity, jump, move_player,
+        spawn_player, Player, PlayerInput, look_up_down_handle,
+    },
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
-use map::{spawn_map, setup};
+use map::{setup, spawn_map};
 
 pub mod animations;
 pub mod entities;
@@ -34,7 +44,9 @@ fn main() {
         .add_plugin(RapierDebugRenderPlugin::default())
         .add_plugin(LdtkPlugin)
         .insert_resource(LdtkSettings {
-            level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation { load_level_neighbors: true },
+            level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
+                load_level_neighbors: true,
+            },
             set_clear_color: SetClearColor::FromLevelBackground,
             ..Default::default()
         })
@@ -55,7 +67,7 @@ impl Plugin for StartupPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_systems((spawn_camera, spawn_map))
             .add_system(camera_follow_player)
-           .add_plugin(PlayerPlugin);
+            .add_plugin(PlayerPlugin);
     }
 }
 
@@ -68,6 +80,7 @@ impl Plugin for PlayerPlugin {
             .add_system(jump)
             .add_system(check_borders)
             .add_system(check_terminal_velocity)
+            .add_system(look_up_down_handle)
             .add_plugin(AnimationPlugin);
     }
 }
@@ -83,11 +96,11 @@ impl Plugin for AnimationPlugin {
 }
 
 #[derive(Component)]
-struct CameraTest;
+pub struct CameraTest;
 
 fn spawn_camera(mut commands: Commands) {
     let mut camera_bundle = Camera2dBundle::default();
-    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(250.); 
+    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(250.);
     commands.spawn(camera_bundle).insert(CameraTest);
 }
 
@@ -102,7 +115,6 @@ fn camera_follow_player(
     camera_transform.translation -= direction * 0.20;
 }
 
-
 struct DebugPlugin;
 
 impl Plugin for DebugPlugin {
@@ -111,3 +123,4 @@ impl Plugin for DebugPlugin {
         app.add_system(check_player_collisions);
     }
 }
+

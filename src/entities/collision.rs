@@ -1,24 +1,36 @@
 use bevy::prelude::{Bundle, Resource};
-use bevy_ecs_ldtk::{LdtkIntCell, EntityInstance};
-use bevy_rapier2d::prelude::{RigidBody, Collider, LockedAxes, Velocity, GravityScale};
+use bevy_ecs_ldtk::{EntityInstance, LdtkIntCell};
+use bevy_rapier2d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Velocity};
 
 #[derive(Bundle, Clone, Debug, LdtkIntCell, Resource)]
 pub struct CollisionBundle {
-   rigid_body: RigidBody,
+    rigid_body: RigidBody,
     collider: Collider,
-    locked_axes: LockedAxes, 
+    locked_axes: LockedAxes,
     velocity: Velocity,
     gravity_scale: GravityScale,
-} 
+}
 
 impl Default for CollisionBundle {
     fn default() -> Self {
-        Self { rigid_body: RigidBody::Fixed, collider: Collider::cuboid(16., 16.), locked_axes: Default::default(), velocity: Default::default(), gravity_scale: GravityScale(0.0) }
+        Self {
+            rigid_body: RigidBody::Fixed,
+            collider: Collider::cuboid(16., 16.),
+            locked_axes: Default::default(),
+            velocity: Default::default(),
+            gravity_scale: GravityScale(0.0),
+        }
     }
 }
 
 impl CollisionBundle {
-    pub fn new(rigid_body: RigidBody, collider: Collider, locked_axes: LockedAxes, velocity: Velocity, gravity_scale: GravityScale) -> Self {
+    pub fn new(
+        rigid_body: RigidBody,
+        collider: Collider,
+        locked_axes: LockedAxes,
+        velocity: Velocity,
+        gravity_scale: GravityScale,
+    ) -> Self {
         Self {
             rigid_body,
             collider,
@@ -34,14 +46,16 @@ impl From<&EntityInstance> for CollisionBundle {
         let _rotation_constraints = LockedAxes::ROTATION_LOCKED;
 
         match entity_instance.identifier.as_ref() {
-           "Player" => {
+            "Player" => {
                 todo!()
             }
             "Mob" => {
                 todo!()
             }
 
-            _ => { todo!()}
+            _ => {
+                todo!()
+            }
         }
     }
 }

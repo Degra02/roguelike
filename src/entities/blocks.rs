@@ -1,24 +1,23 @@
-use bevy::{prelude::{Bundle, Component}, sprite::{SpriteBundle}};
+use bevy::{
+    prelude::{Bundle, Component},
+    sprite::SpriteBundle,
+};
 use bevy_ecs_ldtk::LdtkIntCell;
 
 use super::collision::CollisionBundle;
 
 #[derive(Clone, Default, Bundle)]
 pub struct BlockBundle {
+    #[bundle]
+    sprite: SpriteBundle,
 
     #[bundle]
-   sprite: SpriteBundle,
-
-    #[bundle]
-    collision: CollisionBundle
+    collision: CollisionBundle,
 }
 
 impl BlockBundle {
     pub fn new(sprite: SpriteBundle, collision: CollisionBundle) -> Self {
-        Self {
-            sprite,
-            collision,
-        }
+        Self { sprite, collision }
     }
 }
 
