@@ -3,7 +3,7 @@ use animations::{
     sprite_animation::animate_sprite,
 };
 use bevy::{
-    prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2, Camera, Transform, With, Query, Without, Component},
+    prelude::{App, Camera2dBundle, Commands, Plugin, IntoSystemSetConfig, Vec2, Transform, With, Query, Without, Component},
     DefaultPlugins,
 };
 use bevy_ecs_ldtk::{LdtkPlugin, LevelSelection, LdtkSystemSet, prelude::LdtkIntCellAppExt, LdtkSettings, LevelSpawnBehavior, SetClearColor};
@@ -14,7 +14,7 @@ use bevy_rapier2d::{
     render::RapierDebugRenderPlugin,
 };
 use entities::{
-    player::{move_player, spawn_player, PlayerInput, jump, check_borders, Player}, blocks::WallBundle, collision::CollisionBundle,
+    player::{move_player, spawn_player, PlayerInput, jump, check_borders, Player, check_player_collisions, check_terminal_velocity}, blocks::WallBundle,
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
 use map::{spawn_map, setup};
@@ -27,6 +27,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(StartupPlugin)
+        .add_plugin(DebugPlugin)
         .add_plugin(EditorPlugin::default())
         .add_plugin(InputManagerPlugin::<PlayerInput>::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.))
@@ -66,6 +67,7 @@ impl Plugin for PlayerPlugin {
             .add_system(move_player)
             .add_system(jump)
             .add_system(check_borders)
+            .add_system(check_terminal_velocity)
             .add_plugin(AnimationPlugin);
     }
 }
@@ -85,7 +87,7 @@ struct CameraTest;
 
 fn spawn_camera(mut commands: Commands) {
     let mut camera_bundle = Camera2dBundle::default();
-    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(300.); 
+    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(250.); 
     commands.spawn(camera_bundle).insert(CameraTest);
 }
 
@@ -96,6 +98,16 @@ fn camera_follow_player(
 ) {
     let player_transform = query.single();
     let (_, mut camera_transform) = camera_query.single_mut();
-    camera_transform.translation.x = player_transform.translation.x;
-    camera_transform.translation.y = player_transform.translation.y;
+    let direction = camera_transform.translation - player_transform.translation;
+    camera_transform.translation -= direction * 0.20;
+}
+
+
+struct DebugPlugin;
+
+impl Plugin for DebugPlugin {
+    fn build(&self, app: &mut App) {
+        #[cfg(debug_assertions)]
+        app.add_system(check_player_collisions);
+    }
 }

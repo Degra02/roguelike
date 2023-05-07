@@ -19,6 +19,7 @@ pub enum Animation {
     Jump,
     Fall,
     Crouch,
+    CrouchWalk,
 }
 
 #[derive(Resource)]
@@ -38,7 +39,7 @@ impl FromWorld for PlayerAnimations {
             1,
             1,
             None,
-            None,
+            Some(Vec2::new(0., 9.))
         );
         let run_atlas = TextureAtlas::from_grid(
             asset_server.load("GoldenDude/run_128x128.png"),
@@ -46,7 +47,7 @@ impl FromWorld for PlayerAnimations {
             8,
             1,
             None,
-            None,
+            Some(Vec2::new(0., 9.))
         );
         let jump_atlas = TextureAtlas::from_grid(
             asset_server.load("GoldenDude/jump_128x128.png"),
@@ -54,7 +55,7 @@ impl FromWorld for PlayerAnimations {
             6,
             1,
             None,
-            None,
+            Some(Vec2::new(0., 9.))
         );
         let fall_atlas = TextureAtlas::from_grid(
             asset_server.load("GoldenDude/fall_128x128.png"),
@@ -62,10 +63,12 @@ impl FromWorld for PlayerAnimations {
             3,
             1,
             None,
-            None,
+            Some(Vec2::new(0., 9.))
         );
         let crouch_atlas = TextureAtlas::from_grid(asset_server.load("GoldenDude/crouch_128x128.png"), 
-            Vec2::splat(128.), 1, 1, None, None);
+            Vec2::splat(128.), 1, 1, None, Some(Vec2::new(0., 9.)));
+        let crouch_walk_atlas = TextureAtlas::from_grid(asset_server.load("GoldenDude/crouch_walk_128x128.png"), 
+            Vec2::splat(128.), 7, 1, None, Some(Vec2::new(0., 9.)));
 
         let mut texture_atlas = world.resource_mut::<Assets<TextureAtlas>>();
         map.add(
@@ -101,6 +104,7 @@ impl FromWorld for PlayerAnimations {
             },
         );
         map.add(Animation::Crouch, texture_atlas.add(crouch_atlas), SpriteAnimation { len: 1, frame_time: 1. });
+        map.add(Animation::CrouchWalk, texture_atlas.add(crouch_walk_atlas), SpriteAnimation { len: 7, frame_time: 1. / 6. });
 
         map
     }
@@ -126,7 +130,7 @@ pub fn change_player_animation(
         ),
         With<Player>,
     >,
-    _input: Res<Input<KeyCode>>,
+    input: Res<Input<KeyCode>>,
     animations: Res<PlayerAnimations>,
 ) {
     let (mut atlas, mut animation, mut sprite, velocity) = player.single_mut();
@@ -140,11 +144,13 @@ pub fn change_player_animation(
         Animation::Jump
     } else if velocity.linvel.y < -10. {
         Animation::Fall
+    } else if input.pressed(KeyCode::S) && velocity.linvel.x != 0. {
+        Animation::CrouchWalk
     } else if velocity.linvel.x != 0. {
         Animation::Run
-    } else if _input.pressed(KeyCode::S){
+    } else if input.pressed(KeyCode::S){
         Animation::Crouch
-    }else {
+    } else {
         Animation::Idle
     };
 

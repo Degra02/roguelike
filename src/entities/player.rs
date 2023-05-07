@@ -58,7 +58,7 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
         jumped: Jumped(false),
         controller: KinematicCharacterController {
             autostep: Some(CharacterAutostep {
-                max_height: CharacterLength::Relative(0.1),
+                max_height: CharacterLength::Relative(0.2),
                 min_width: CharacterLength::Relative(0.0),
                 include_dynamic_bodies: true,
             }),
@@ -75,10 +75,14 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
                 ..Default::default()
             },
             texture_atlas,
-            transform: Transform::from_scale(Vec3::splat(0.25)),
+            transform: Transform {
+                translation: Vec3::new(0., 0., 10.),
+                scale: Vec3::new(0.25, 0.25, 1.),
+                ..Default::default()
+            },
             ..SpriteSheetBundle::default()
         },
-        collision: CollisionBundle::new(RigidBody::Dynamic, Collider::cuboid(36., 55.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default(), GravityScale(1.0)),
+        collision: CollisionBundle::new(RigidBody::Dynamic, Collider::cuboid(36., 50.), LockedAxes::ROTATION_LOCKED_Z, Velocity::default(), GravityScale(1.0)),
     };
 
     commands.spawn(player_bundle);
@@ -91,6 +95,8 @@ pub enum PlayerInput {
     Jump,
     Fall,
     Crouch,
+    CrouchWalkRight,
+    CrouchWalkLeft,
 }
 
 impl PlayerInput {
@@ -100,9 +106,12 @@ impl PlayerInput {
             (KeyCode::A, PlayerInput::Left),
             (KeyCode::D, PlayerInput::Right),
             (KeyCode::Space, PlayerInput::Jump),
-            (KeyCode::S, PlayerInput::Crouch)
+            (KeyCode::S, PlayerInput::Crouch),
         ]);
 
+        map.insert_chord([KeyCode::S, KeyCode::D], PlayerInput::CrouchWalkRight);
+        map.insert_chord([KeyCode::S, KeyCode::A], PlayerInput::CrouchWalkLeft);
+        
         map
     }
 }
@@ -116,7 +125,11 @@ pub fn move_player(
 ) {
     let (mut velocity, input) = player.single_mut();
 
-    if input.just_pressed(PlayerInput::Left) || input.pressed(PlayerInput::Left){
+    if input.pressed(PlayerInput::CrouchWalkLeft) {
+        velocity.linvel.x = -MOVE_SPEED * 0.3;
+    } else if input.pressed(PlayerInput::CrouchWalkRight) {
+        velocity.linvel.x = MOVE_SPEED * 0.3;
+    } else if input.just_pressed(PlayerInput::Left) || input.pressed(PlayerInput::Left){
         velocity.linvel.x = -MOVE_SPEED;
     } else if input.just_pressed(PlayerInput::Right) || input.pressed(PlayerInput::Right) {
         velocity.linvel.x = MOVE_SPEED;
@@ -147,7 +160,7 @@ pub fn jump(
                         }
                     }, 
                 false => {
-                    if input.just_pressed(PlayerInput::Jump) && jumped.0 == false {
+                    if input.just_pressed(PlayerInput::Jump) && !jumped.0 {
                         velocity.linvel.y += 25. * time.delta_seconds() * 1000.;
                         jumped.0 = true;
                     } else if input.pressed(PlayerInput::Jump) && input.current_duration(PlayerInput::Jump).as_millis() < 180 {
@@ -176,4 +189,26 @@ pub fn check_borders(
         controller.translation.y = 400.0;
     }
 
+}
+
+pub fn check_terminal_velocity(
+    mut player: Query<&mut Velocity, With<Player>>,
+) {
+    let mut controller = player.single_mut(); 
+
+    if controller.linvel.y < -1000.0 {
+        controller.linvel.y = -1000.0;
+    }
+
+}
+
+
+pub fn check_player_collisions(
+   query: Query<&KinematicCharacterControllerOutput, With<Player>> 
+) {
+    for controller in query.iter() {
+        for collision in controller.collisions.iter() {
+            println!("{:?}", collision);
+        }
+    }
 }
