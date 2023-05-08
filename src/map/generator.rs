@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Direction {
     Down,
@@ -11,6 +13,25 @@ pub enum MapTile {
     Exit{ pos: (u32, u32), from: Direction},
     Path {pos: (u32, u32), from: Direction, to: Direction},
     Empty {pos: (u32, u32)},
+}
+
+impl Display for  MapTile {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MapTile::Entrance { pos , to} => {
+                write!(f, "[Entrance: {:?}; to: {:?}]", pos, to)
+            }
+            MapTile::Exit { pos, from } => {
+                write!(f, "[Exit: {:?}; from: {:?}]", pos, from)
+            }
+            MapTile::Path { pos, from, to } => {
+                write!(f, "[Path: {:?}; from: {:?}, to: {:?}]", pos, from, to)
+            }
+            MapTile::Empty { pos } => {
+                write!(f, "[Empty: {:?}]", pos)
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -43,10 +64,13 @@ impl Map {
 
 pub fn generate_main_path(width: u32, height: u32, start: (u32, u32)) -> ((u32, u32), Vec<MapTile>) {
     let mut current_pos = start;
+    let mut to_save_pos = start;
 
     let mut prev_dir = Direction::Down;
     let mut map_tiles = Vec::<MapTile>::new();
     let mut direction_map_tiles = Vec::<MapTile>::new();
+
+    let mut first = true;
 
     while current_pos.1 != height - 1 {
         let direction : Option<Direction> = match rand::random::<u32>() % 3 {
@@ -70,11 +94,24 @@ pub fn generate_main_path(width: u32, height: u32, start: (u32, u32)) -> ((u32, 
             _ => panic!("This should never happen"),
         }; 
 
+
         if let Some(dir) = direction{
-            let map_tile = MapTile::Path { pos: current_pos, from: prev_dir, to: dir };
+            let map_tile: MapTile;
+            if to_save_pos.1 == 0  && first {
+                map_tile = MapTile::Entrance { pos: start, to: dir }; 
+                first = false;
+            } else if to_save_pos.1 == height - 1 {
+                map_tile = MapTile::Exit { pos: to_save_pos, from: prev_dir };
+            } else {
+                map_tile = MapTile::Path { pos: to_save_pos, from: prev_dir, to: dir };
+            }
             direction_map_tiles.push(map_tile);
+            if dir == Direction::Down {
+                current_pos.1 += 1;
+            }
 
             prev_dir = dir;
+            to_save_pos = current_pos;
         }
     }
 
@@ -91,15 +128,28 @@ pub fn generate_main_path(width: u32, height: u32, start: (u32, u32)) -> ((u32, 
                 let (x, y) = pos;
                 map_tiles[(y * width + x) as usize] = MapTile::Path {pos: (*x, *y), from: *from, to: *to};
             }
-            _ => panic!("This should never happen"),
+            MapTile::Entrance { pos, to } => {
+                let (x, y) = pos;
+                map_tiles[(y * width + x) as usize] = MapTile::Entrance {pos: (*x, *y), to: *to};
+            }
+            MapTile::Exit { pos, from } => {
+                let (x, y) = pos;
+                map_tiles[(y * width + x) as usize] = MapTile::Exit {pos: (*x, *y), from: *from};
+            }
+            _ => {panic!("No Empty tiles should be here");}
         }
-    }
+        }
 
-    ((current_pos.0, current_pos.1), direction_map_tiles)
+    ((current_pos.0, current_pos.1), map_tiles)
 }
 
 #[test]
 fn generate_map() {
     let map = Map::new(5, 7);
-    println!("{:?}", map)
+    for i in 0..map.height {
+        for j in 0..map.width {
+            print!(" {} ", map.map_tiles[(i * map.width + j) as usize]);
+        }
+        println!();
+    } 
 }
