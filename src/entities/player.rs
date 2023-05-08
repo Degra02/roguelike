@@ -148,10 +148,10 @@ pub fn move_player(
         velocity.linvel.x = MOVE_SPEED;
     } else if input.just_released(PlayerInput::Left) {
         velocity.linvel.x += 30. * input.current_duration(PlayerInput::Left).as_secs_f32();
-        velocity.linvel.x = 0.0;
+        // velocity.linvel.x = 0.0;
     } else if input.just_released(PlayerInput::Right) {
         velocity.linvel.x -= 3000. * time.delta_seconds();
-        velocity.linvel.x = 0.0;
+        // velocity.linvel.x = 0.0;
     } else {
         velocity.linvel.x = 0.0;
     }
@@ -216,16 +216,15 @@ pub fn look_up_down_handle(
     let input = player.single();
     let mut camera = camera.single_mut();
     if input.pressed(PlayerInput::LookUp)
-        && input.current_duration(PlayerInput::LookUp).as_secs_f32() > 1.
-    {
+        && input.current_duration(PlayerInput::LookUp).as_secs_f32() > 0.7 {
         camera.translation.y += 800.0 * time.delta_seconds();
-    } else if input.just_released(PlayerInput::LookUp) {
+    } else if input.just_released(PlayerInput::LookUp) && input.previous_duration(PlayerInput::LookUp).as_secs_f32() > 1.{
         camera.translation.y -= 800.0 * time.delta_seconds();
     } else if input.pressed(PlayerInput::Crouch)
-        && input.current_duration(PlayerInput::Crouch).as_secs_f32() > 1.
+        && input.current_duration(PlayerInput::Crouch).as_secs_f32() > 0.7
     {
         camera.translation.y -= 800.0 * time.delta_seconds();
-    } else if input.just_released(PlayerInput::Crouch) {
+    } else if input.just_released(PlayerInput::Crouch)  && input.previous_duration(PlayerInput::Crouch).as_secs_f32() > 1. {
         camera.translation.y += 800.0 * time.delta_seconds();
     }
 }
