@@ -9,7 +9,7 @@ use crate::{
 use bevy::{
     prelude::{
         error, Bundle, Commands, Component, KeyCode, Query, Res, Transform, Vec2, Vec3,
-        With,
+        With, Without,
     },
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
     time::Time,
@@ -229,12 +229,18 @@ pub fn look_up_down_handle(
     }
 }
 
-pub fn check_borders(mut player: Query<&mut Transform, With<Player>>, window: Query<&Window>) {
+pub fn check_borders(
+    mut player: Query<&mut Transform, With<Player>>, 
+    mut camera_query: Query<(&CameraTest, &mut Transform), Without<Player>>,
+    window: Query<&Window>
+) {
     let mut controller = player.single_mut();
     let window = window.single();
 
     if controller.translation.y < -window.height() {
+        let mut camera = camera_query.single_mut();
         controller.translation.y = window.height();
+        camera.1.translation.y = controller.translation.y;
     }
 }
 

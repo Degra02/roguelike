@@ -27,7 +27,7 @@ use entities::{
     },
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
-use map::{setup, spawn_map};
+use map::{setup, spawn_map, ldtk_setup::LdtkLoader};
 
 pub mod animations;
 pub mod entities;
@@ -58,6 +58,7 @@ fn main() {
             ..Default::default()
         })
         .register_ldtk_int_cell::<WallBundle>(1)
+        .add_plugin(LdtkLoader)
         .run()
 }
 

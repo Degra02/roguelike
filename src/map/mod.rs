@@ -1,4 +1,5 @@
 pub mod generator;
+pub mod ldtk_setup;
 
 use bevy::{
     prelude::{AssetServer, Color, Commands, Res, Transform, Vec2},
