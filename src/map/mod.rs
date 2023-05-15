@@ -55,12 +55,3 @@ pub fn spawn_map(mut commands: Commands) {
     commands.spawn(floor);
     commands.spawn(block);
 }
-
-pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let ldtk_handle =
-        asset_server.load("/usr/share/ldtk/extraFiles/samples/Typical_2D_platformer_example.ldtk");
-    commands.spawn(LdtkWorldBundle {
-        ldtk_handle,
-        ..Default::default()
-    });
-}

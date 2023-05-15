@@ -22,7 +22,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         // Load the level using the LDtk loader
         let level_bundle = LdtkWorldBundle {
             ldtk_handle: level_asset,
-            transform: Transform::from_translation(offset),
+            transform: Transform::from_translation(offset).with_scale(Vec3::new(0.25, 0.25, 0.25)), 
             ..Default::default()
         };
 
@@ -35,9 +35,17 @@ fn generate_ldtk_files() -> Vec<(String, Vec3)> {
     let map = Map::new(3, 3);  
     let mut ldtk_files = Vec::new();
 
-    for (i, level) in map.map_tiles.iter().enumerate() {
-        let ldtk_file = format!("/usr/share/ldtk/extraFiles/samples/AutoLayers_3_Mosaic.ldtk");
-        ldtk_files.push((ldtk_file, Vec3::new(i as f32 * 368., -500., 0.)));
+    for (i, tile) in map.map_tiles.iter().enumerate() {
+        // let ldtk_file = match tile {
+        //     super::generator::MapTile::Entrance { pos, to } => todo!(),
+        //     super::generator::MapTile::Exit { pos, from } => todo!(),
+        //     super::generator::MapTile::Path { pos, from, to } => todo!(),
+        //     super::generator::MapTile::Empty { pos } => todo!(),
+        // };
+
+        let ldtk_file = format!("/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/0.ldtk");
+        // make the level offset in a grid pattern
+        ldtk_files.push((ldtk_file, Vec3::new((i as u32 % map.width ) as f32 * 480.,  (i as u32 / map.width) as f32 * 480., 0.)));
     }
 
     ldtk_files

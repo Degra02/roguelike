@@ -27,7 +27,7 @@ use entities::{
     },
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
-use map::{setup, spawn_map, ldtk_setup::LdtkLoader};
+use map::{spawn_map, ldtk_setup::LdtkLoader};
 
 pub mod animations;
 pub mod entities;
@@ -51,7 +51,6 @@ fn main() {
             ..Default::default()
         })
         .insert_resource(LevelSelection::Index(0))
-        .add_startup_system(setup)
         .configure_set(LdtkSystemSet::ProcessApi.before(PhysicsSet::SyncBackend))
         .insert_resource(RapierConfiguration {
             gravity: Vec2::new(0.0, -2000.),
