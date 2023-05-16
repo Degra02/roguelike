@@ -4,16 +4,16 @@ use crate::{
         player_animations::{Animation, PlayerAnimations},
         sprite_animation::{FrameTime, SpriteAnimation},
     },
-    CameraTest,
+    CameraTest, AnimationPlugin,
 };
 use bevy::{
     prelude::{
         error, Bundle, Commands, Component, KeyCode, Query, Res, Transform, Vec2, Vec3,
-        With, Without,
+        With, Without, App, Plugin,
     },
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
     time::Time,
-    window::Window,
+    window::Window, reflect::Reflect,
 };
 use bevy_rapier2d::prelude::{
     CharacterAutostep, CharacterLength, Collider, GravityScale, KinematicCharacterController,
@@ -24,13 +24,19 @@ use leafwing_input_manager::{
     Actionlike, InputManagerBundle,
 };
 
-#[derive(Component, Default, Debug, Clone)]
+#[derive(Reflect, Component, Default, Debug, Clone)]
 pub struct Jumped(pub bool);
+
+#[derive(Reflect, Component, Default, Debug, Clone)]
+pub struct Speed(pub f32);
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
     health: Health,
     _p: Player,
+    
+    speed: Speed,
+
     animation: SpriteAnimation,
     frame_time: FrameTime,
 
@@ -49,7 +55,7 @@ pub struct PlayerBundle {
     collision: CollisionBundle,
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect, Default, Debug, Clone)]
 pub struct Player;
 
 pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
@@ -58,6 +64,7 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
     let player_bundle = PlayerBundle {
         health: Health::new(4),
         _p: Player,
+        speed: Speed(800.),
         animation,
         frame_time: FrameTime(0.0),
         jumped: Jumped(false),
@@ -82,7 +89,7 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
             texture_atlas,
             transform: Transform {
                 translation: Vec3::new(0., 0., 10.),
-                scale: Vec3::new(0.25, 0.25, 1.),
+                // scale: Vec3::new(0.25, 0.25, 1.),
                 ..Default::default()
             },
             ..SpriteSheetBundle::default()
@@ -129,29 +136,26 @@ impl PlayerInput {
     }
 }
 
-pub const MOVE_SPEED: f32 = 300.0;
 pub const JUMP_FORCE: f32 = 80.0;
 
 pub fn move_player(
-    mut player: Query<(&mut Velocity, &ActionState<PlayerInput>), With<Player>>,
+    mut player: Query<(&mut Velocity, &Speed, &ActionState<PlayerInput>), With<Player>>,
     time: Res<Time>,
 ) {
-    let (mut velocity, input) = player.single_mut();
+    let (mut velocity, speed, input) = player.single_mut();
 
     if input.pressed(PlayerInput::CrouchWalkLeft) {
-        velocity.linvel.x = -MOVE_SPEED * 0.3;
+        velocity.linvel.x = -speed.0 * 0.3;
     } else if input.pressed(PlayerInput::CrouchWalkRight) {
-        velocity.linvel.x = MOVE_SPEED * 0.3;
+        velocity.linvel.x = speed.0 * 0.3;
     } else if input.just_pressed(PlayerInput::Left) || input.pressed(PlayerInput::Left) {
-        velocity.linvel.x = -MOVE_SPEED;
+        velocity.linvel.x = -speed.0;
     } else if input.just_pressed(PlayerInput::Right) || input.pressed(PlayerInput::Right) {
-        velocity.linvel.x = MOVE_SPEED;
+        velocity.linvel.x = speed.0;
     } else if input.just_released(PlayerInput::Left) {
         velocity.linvel.x += 30. * input.current_duration(PlayerInput::Left).as_secs_f32();
-        // velocity.linvel.x = 0.0;
     } else if input.just_released(PlayerInput::Right) {
         velocity.linvel.x -= 3000. * time.delta_seconds();
-        // velocity.linvel.x = 0.0;
     } else {
         velocity.linvel.x = 0.0;
     }
@@ -257,5 +261,23 @@ pub fn check_player_collisions(query: Query<&KinematicCharacterControllerOutput,
         for collision in controller.collisions.iter() {
             println!("{:?}", collision);
         }
+    }
+}
+
+pub struct PlayerPlugin;
+
+impl Plugin for PlayerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(spawn_player)
+            .add_system(move_player)
+            .add_system(jump)
+            .add_system(check_borders)
+            .add_system(check_terminal_velocity)
+            .add_system(look_up_down_handle)
+            .register_type::<Jumped>()
+            .register_type::<Health>()
+            .register_type::<GravityScale>()
+            .register_type::<Speed>()
+            .add_plugin(AnimationPlugin);
     }
 }

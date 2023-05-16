@@ -23,7 +23,7 @@ use entities::{
     blocks::WallBundle,
     player::{
         check_borders, check_player_collisions, check_terminal_velocity, jump, look_up_down_handle,
-        move_player, spawn_player, Player, PlayerInput,
+        move_player, spawn_player, Player, PlayerInput, PlayerPlugin,
     },
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
@@ -71,20 +71,6 @@ impl Plugin for StartupPlugin {
     }
 }
 
-pub struct PlayerPlugin;
-
-impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_player)
-            .add_system(move_player)
-            .add_system(jump)
-            .add_system(check_borders)
-            .add_system(check_terminal_velocity)
-            .add_system(look_up_down_handle)
-            .add_plugin(AnimationPlugin);
-    }
-}
-
 pub struct AnimationPlugin;
 
 impl Plugin for AnimationPlugin {
@@ -100,7 +86,7 @@ pub struct CameraTest;
 
 fn spawn_camera(mut commands: Commands) {
     let mut camera_bundle = Camera2dBundle::default();
-    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(250.);
+    camera_bundle.projection.scaling_mode = bevy::render::camera::ScalingMode::FixedVertical(1000.);
     commands.spawn(camera_bundle).insert(CameraTest);
 }
 

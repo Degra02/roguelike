@@ -5,7 +5,7 @@ use bevy::{
         error, AssetServer, Assets, FromWorld, Handle, Input, KeyCode, Query, Res, Resource, Vec2,
         With,
     },
-    sprite::{TextureAtlas, TextureAtlasSprite},
+    sprite::{TextureAtlas, TextureAtlasSprite}, reflect::Reflect,
 };
 use bevy_rapier2d::prelude::Velocity;
 
@@ -13,7 +13,7 @@ use crate::entities::player::Player;
 
 use super::sprite_animation::SpriteAnimation;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Reflect, Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Animation {
     Run,
     Idle,

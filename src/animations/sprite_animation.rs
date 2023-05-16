@@ -1,16 +1,16 @@
 use bevy::{
     prelude::{Component, Query, Res},
     sprite::TextureAtlasSprite,
-    time::Time,
+    time::Time, reflect::Reflect,
 };
 
-#[derive(Component, Clone, Copy)]
+#[derive(Reflect, Component, Clone, Copy)]
 pub struct SpriteAnimation {
     pub len: usize,
     pub frame_time: f32,
 }
 
-#[derive(Component)]
+#[derive(Reflect, Component)]
 pub struct FrameTime(pub f32);
 
 pub fn animate_sprite(
