@@ -25,7 +25,7 @@ use leafwing_input_manager::{
 };
 
 #[derive(Reflect, Component, Default, Debug, Clone)]
-pub struct Jumped(pub bool);
+pub struct Jump(pub bool, f32);
 
 #[derive(Reflect, Component, Default, Debug, Clone)]
 pub struct Speed(pub f32);
@@ -40,7 +40,7 @@ pub struct PlayerBundle {
     animation: SpriteAnimation,
     frame_time: FrameTime,
 
-    jumped: Jumped,
+    jump: Jump,
 
     controller: KinematicCharacterController,
     output: KinematicCharacterControllerOutput,
@@ -67,7 +67,7 @@ pub fn spawn_player(mut commands: Commands, animations: Res<PlayerAnimations>) {
         speed: Speed(800.),
         animation,
         frame_time: FrameTime(0.0),
-        jumped: Jumped(false),
+        jump: Jump(false, 100.),
         controller: KinematicCharacterController {
             autostep: Some(CharacterAutostep {
                 max_height: CharacterLength::Relative(0.2),
@@ -168,7 +168,7 @@ pub fn jump(
             &mut KinematicCharacterController,
             &KinematicCharacterControllerOutput,
             &mut Velocity,
-            &mut Jumped,
+            &mut Jump,
         ),
         With<Player>,
     >,
@@ -176,11 +176,11 @@ pub fn jump(
     time: Res<Time>,
 ) {
     for input in input_query.iter() {
-        for (mut controller, k_output, mut velocity, mut jumped) in controllers.iter_mut() {
+        for (mut controller, k_output, mut velocity, mut jump) in controllers.iter_mut() {
             match k_output.grounded {
                 true => {
                     if input.pressed(PlayerInput::Jump) {
-                        velocity.linvel.y += 50.0 * time.delta_seconds();
+                        velocity.linvel.y += jump.1 * time.delta_seconds();
                     } else {
                         controller.translation = match controller.translation {
                             Some(mut v) => {
@@ -192,9 +192,9 @@ pub fn jump(
                     }
                 }
                 false => {
-                    if input.just_pressed(PlayerInput::Jump) && !jumped.0 {
-                        velocity.linvel.y += 25. * time.delta_seconds() * 1000.;
-                        jumped.0 = true;
+                    if input.just_pressed(PlayerInput::Jump) && !jump.0 {
+                        velocity.linvel.y += jump.1 * time.delta_seconds() * 1000.;
+                        jump.0 = true;
                     } else if input.pressed(PlayerInput::Jump)
                         && input.current_duration(PlayerInput::Jump).as_millis() < 180
                     {
@@ -204,7 +204,7 @@ pub fn jump(
                     }
 
                     if velocity.linvel.y == 0.0 {
-                        jumped.0 = false;
+                        jump.0 = false;
                     }
                 }
             }
@@ -221,15 +221,15 @@ pub fn look_up_down_handle(
     let mut camera = camera.single_mut();
     if input.pressed(PlayerInput::LookUp)
         && input.current_duration(PlayerInput::LookUp).as_secs_f32() > 0.7 {
-        camera.translation.y += 800.0 * time.delta_seconds();
+        camera.translation.y += 3800.0 * time.delta_seconds();
     } else if input.just_released(PlayerInput::LookUp) && input.previous_duration(PlayerInput::LookUp).as_secs_f32() > 1.{
-        camera.translation.y -= 800.0 * time.delta_seconds();
+        camera.translation.y -= 3800.0 * time.delta_seconds();
     } else if input.pressed(PlayerInput::Crouch)
         && input.current_duration(PlayerInput::Crouch).as_secs_f32() > 0.7
     {
-        camera.translation.y -= 800.0 * time.delta_seconds();
+        camera.translation.y -= 3800.0 * time.delta_seconds();
     } else if input.just_released(PlayerInput::Crouch)  && input.previous_duration(PlayerInput::Crouch).as_secs_f32() > 1. {
-        camera.translation.y += 800.0 * time.delta_seconds();
+        camera.translation.y += 3800.0 * time.delta_seconds();
     }
 }
 
@@ -251,8 +251,8 @@ pub fn check_borders(
 pub fn check_terminal_velocity(mut player: Query<&mut Velocity, With<Player>>) {
     let mut controller = player.single_mut();
 
-    if controller.linvel.y < -1000.0 {
-        controller.linvel.y = -1000.0;
+    if controller.linvel.y < -3000.0 {
+        controller.linvel.y = -3000.0;
     }
 }
 
@@ -274,7 +274,7 @@ impl Plugin for PlayerPlugin {
             .add_system(check_borders)
             .add_system(check_terminal_velocity)
             .add_system(look_up_down_handle)
-            .register_type::<Jumped>()
+            .register_type::<Jump>()
             .register_type::<Health>()
             .register_type::<GravityScale>()
             .register_type::<Speed>()

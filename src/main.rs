@@ -53,7 +53,7 @@ fn main() {
         .insert_resource(LevelSelection::Index(0))
         .configure_set(LdtkSystemSet::ProcessApi.before(PhysicsSet::SyncBackend))
         .insert_resource(RapierConfiguration {
-            gravity: Vec2::new(0.0, -2000.),
+            gravity: Vec2::new(0.0, -5000.),
             ..Default::default()
         })
         .register_ldtk_int_cell::<WallBundle>(1)
