@@ -15,7 +15,7 @@ impl Default for CollisionBundle {
     fn default() -> Self {
         Self {
             rigid_body: RigidBody::Fixed,
-            collider: Collider::cuboid(128., 128.),
+            collider: Collider::cuboid(64., 64.),
             locked_axes: Default::default(),
             velocity: Default::default(),
             gravity_scale: GravityScale(0.0),
