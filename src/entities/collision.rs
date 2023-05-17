@@ -1,4 +1,7 @@
-use bevy::{prelude::{Bundle, Resource}, reflect::Reflect};
+use bevy::{
+    prelude::{Bundle, Resource},
+    reflect::Reflect,
+};
 use bevy_ecs_ldtk::{EntityInstance, LdtkIntCell};
 use bevy_rapier2d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Velocity};
 

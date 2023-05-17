@@ -1,7 +1,8 @@
 use bevy::{
     prelude::{Component, Query, Res},
+    reflect::Reflect,
     sprite::TextureAtlasSprite,
-    time::Time, reflect::Reflect,
+    time::Time,
 };
 
 #[derive(Reflect, Component, Clone, Copy)]

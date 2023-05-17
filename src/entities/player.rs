@@ -4,16 +4,17 @@ use crate::{
         player_animations::{Animation, PlayerAnimations},
         sprite_animation::{FrameTime, SpriteAnimation},
     },
-    CameraTest, AnimationPlugin,
+    AnimationPlugin, CameraTest,
 };
 use bevy::{
     prelude::{
-        error, Bundle, Commands, Component, KeyCode, Query, Res, Transform, Vec2, Vec3,
-        With, Without, App, Plugin,
+        error, App, Bundle, Commands, Component, KeyCode, Plugin, Query, Res, Transform, Vec2,
+        Vec3, With, Without,
     },
+    reflect::Reflect,
     sprite::{SpriteSheetBundle, TextureAtlasSprite},
     time::Time,
-    window::Window, reflect::Reflect,
+    window::Window,
 };
 use bevy_rapier2d::prelude::{
     CharacterAutostep, CharacterLength, Collider, GravityScale, KinematicCharacterController,
@@ -34,7 +35,7 @@ pub struct Speed(pub f32);
 pub struct PlayerBundle {
     health: Health,
     _p: Player,
-    
+
     speed: Speed,
 
     animation: SpriteAnimation,
@@ -220,23 +221,28 @@ pub fn look_up_down_handle(
     let input = player.single();
     let mut camera = camera.single_mut();
     if input.pressed(PlayerInput::LookUp)
-        && input.current_duration(PlayerInput::LookUp).as_secs_f32() > 0.7 {
+        && input.current_duration(PlayerInput::LookUp).as_secs_f32() > 0.7
+    {
         camera.translation.y += 3800.0 * time.delta_seconds();
-    } else if input.just_released(PlayerInput::LookUp) && input.previous_duration(PlayerInput::LookUp).as_secs_f32() > 1.{
+    } else if input.just_released(PlayerInput::LookUp)
+        && input.previous_duration(PlayerInput::LookUp).as_secs_f32() > 1.
+    {
         camera.translation.y -= 3800.0 * time.delta_seconds();
     } else if input.pressed(PlayerInput::Crouch)
         && input.current_duration(PlayerInput::Crouch).as_secs_f32() > 0.7
     {
         camera.translation.y -= 3800.0 * time.delta_seconds();
-    } else if input.just_released(PlayerInput::Crouch)  && input.previous_duration(PlayerInput::Crouch).as_secs_f32() > 1. {
+    } else if input.just_released(PlayerInput::Crouch)
+        && input.previous_duration(PlayerInput::Crouch).as_secs_f32() > 1.
+    {
         camera.translation.y += 3800.0 * time.delta_seconds();
     }
 }
 
 pub fn check_borders(
-    mut player: Query<&mut Transform, With<Player>>, 
+    mut player: Query<&mut Transform, With<Player>>,
     mut camera_query: Query<(&CameraTest, &mut Transform), Without<Player>>,
-    window: Query<&Window>
+    window: Query<&Window>,
 ) {
     let mut controller = player.single_mut();
     let window = window.single();

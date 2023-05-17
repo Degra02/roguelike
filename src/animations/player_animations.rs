@@ -5,7 +5,8 @@ use bevy::{
         error, AssetServer, Assets, FromWorld, Handle, Input, KeyCode, Query, Res, Resource, Vec2,
         With,
     },
-    sprite::{TextureAtlas, TextureAtlasSprite}, reflect::Reflect,
+    reflect::Reflect,
+    sprite::{TextureAtlas, TextureAtlasSprite},
 };
 use bevy_rapier2d::prelude::Velocity;
 

@@ -27,7 +27,7 @@ use entities::{
     },
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
-use map::{spawn_map, ldtk_setup::LdtkLoader};
+use map::{ldtk_setup::LdtkLoader, spawn_map};
 
 pub mod animations;
 pub mod entities;

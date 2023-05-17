@@ -1,8 +1,7 @@
-use bevy::prelude::{Plugin, Vec2, Transform, Vec3, AssetServer, Res, Commands, App};
+use bevy::prelude::{App, AssetServer, Commands, Plugin, Res, Transform, Vec2, Vec3};
 use bevy_ecs_ldtk::{LdtkLevel, LdtkWorldBundle};
 
 use super::generator::Map;
-
 
 pub struct LdtkLoader;
 
@@ -22,17 +21,17 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         // Load the level using the LDtk loader
         let level_bundle = LdtkWorldBundle {
             ldtk_handle: level_asset,
-            transform: Transform::from_translation(offset) /*.with_scale(Vec3::new(0.25, 0.25, 0.25))*/, 
+            transform: Transform::from_translation(offset), /*.with_scale(Vec3::new(0.25, 0.25, 0.25))*/
             ..Default::default()
         };
 
-        // Spawn the level 
+        // Spawn the level
         commands.spawn(level_bundle);
     }
 }
 
 fn generate_ldtk_files() -> Vec<(String, Vec3)> {
-    let map = Map::new(3, 3);  
+    let map = Map::new(3, 3);
     let mut ldtk_files = Vec::new();
 
     for (i, tile) in map.map_tiles.iter().enumerate() {
@@ -43,9 +42,17 @@ fn generate_ldtk_files() -> Vec<(String, Vec3)> {
         //     super::generator::MapTile::Empty { pos } => todo!(),
         // };
 
-        let ldtk_file = format!("/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/0.ldtk");
+        let ldtk_file =
+            format!("/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/0.ldtk");
         // make the level offset in a grid pattern
-        ldtk_files.push((ldtk_file, Vec3::new((i as u32 % map.width ) as f32 * 1920.,  (i as u32 / map.width) as f32 * 1920., 0.)));
+        ldtk_files.push((
+            ldtk_file,
+            Vec3::new(
+                (i as u32 % map.width) as f32 * 1920.,
+                (i as u32 / map.width) as f32 * 1920.,
+                0.,
+            ),
+        ));
     }
 
     ldtk_files
