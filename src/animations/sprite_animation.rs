@@ -5,13 +5,13 @@ use bevy::{
     time::Time,
 };
 
-#[derive(Reflect, Component, Clone, Copy)]
+#[derive(Reflect, Default, Component, Clone, Copy)]
 pub struct SpriteAnimation {
     pub len: usize,
     pub frame_time: f32,
 }
 
-#[derive(Reflect, Component)]
+#[derive(Reflect, Component, Default, Clone, Copy)]
 pub struct FrameTime(pub f32);
 
 pub fn animate_sprite(

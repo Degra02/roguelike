@@ -1,6 +1,6 @@
 use bevy::{prelude::Component, reflect::Reflect};
 
-#[derive(Reflect, Component)]
+#[derive(Reflect, Component, Default, Clone, Copy)]
 pub struct Health(i32);
 
 impl Health {

@@ -16,6 +16,7 @@ use bevy::{
     time::Time,
     window::Window,
 };
+use bevy_ecs_ldtk::LdtkIntCell;
 use bevy_rapier2d::prelude::{
     CharacterAutostep, CharacterLength, Collider, GravityScale, KinematicCharacterController,
     KinematicCharacterControllerOutput, LockedAxes, RigidBody, Velocity,
@@ -31,7 +32,7 @@ pub struct Jump(pub bool, f32);
 #[derive(Reflect, Component, Default, Debug, Clone)]
 pub struct Speed(pub f32);
 
-#[derive(Bundle)]
+#[derive(Bundle, LdtkIntCell)]
 pub struct PlayerBundle {
     health: Health,
     _p: Player,
