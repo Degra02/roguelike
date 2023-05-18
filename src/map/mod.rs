@@ -2,10 +2,10 @@ pub mod generator;
 pub mod ldtk_setup;
 
 use bevy::{
-    prelude::{AssetServer, Color, Commands, Res, Transform, Vec2},
+    prelude::{Color, Commands, Transform, Vec2},
     sprite::{Sprite, SpriteBundle},
 };
-use bevy_ecs_ldtk::LdtkWorldBundle;
+
 use bevy_rapier2d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Velocity};
 
 use crate::entities::{

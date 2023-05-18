@@ -1,5 +1,5 @@
-use bevy::prelude::{App, AssetServer, Commands, Plugin, Res, Transform, Vec2, Vec3};
-use bevy_ecs_ldtk::{LdtkLevel, LdtkWorldBundle};
+use bevy::prelude::{App, AssetServer, Commands, Plugin, Res, Transform, Vec3};
+use bevy_ecs_ldtk::{LdtkWorldBundle};
 
 use super::generator::Map;
 
@@ -34,7 +34,7 @@ fn generate_ldtk_files() -> Vec<(String, Vec3)> {
     let map = Map::new(3, 3);
     let mut ldtk_files = Vec::new();
 
-    for (i, tile) in map.map_tiles.iter().enumerate() {
+    for (i, _tile) in map.map_tiles.iter().enumerate() {
         // let ldtk_file = match tile {
         //     super::generator::MapTile::Entrance { pos, to } => todo!(),
         //     super::generator::MapTile::Exit { pos, from } => todo!(),

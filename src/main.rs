@@ -22,8 +22,7 @@ use bevy_rapier2d::{
 use entities::{
     blocks::WallBundle,
     player::{
-        check_borders, check_player_collisions, check_terminal_velocity, jump, look_up_down_handle,
-        move_player, spawn_player, Player, PlayerInput, PlayerPlugin,
+        check_player_collisions, Player, PlayerInput, PlayerPlugin,
     },
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
