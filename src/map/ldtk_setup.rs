@@ -43,7 +43,7 @@ fn generate_ldtk_files() -> Vec<(String, Vec3)> {
         // };
 
         let ldtk_file =
-            format!("/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/0.ldtk");
+            "/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/0.ldtk".to_string();
         // make the level offset in a grid pattern
         ldtk_files.push((
             ldtk_file,
