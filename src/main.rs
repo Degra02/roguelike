@@ -21,9 +21,7 @@ use bevy_rapier2d::{
 };
 use entities::{
     blocks::WallBundle,
-    player::{
-        check_player_collisions, Player, PlayerInput, PlayerPlugin,
-    },
+    player::{Player, PlayerInput, PlayerPlugin},
 };
 use leafwing_input_manager::prelude::InputManagerPlugin;
 use map::{ldtk_setup::LdtkLoader, spawn_map};
@@ -36,7 +34,6 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(StartupPlugin)
-        .add_plugin(DebugPlugin)
         .add_plugin(EditorPlugin::default())
         .add_plugin(InputManagerPlugin::<PlayerInput>::default())
         .add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.))
@@ -98,13 +95,4 @@ fn camera_follow_player(
     let (_, mut camera_transform) = camera_query.single_mut();
     let direction = camera_transform.translation - player_transform.translation;
     camera_transform.translation -= direction * 0.20;
-}
-
-struct DebugPlugin;
-
-impl Plugin for DebugPlugin {
-    fn build(&self, app: &mut App) {
-        #[cfg(debug_assertions)]
-        app.add_system(check_player_collisions);
-    }
 }

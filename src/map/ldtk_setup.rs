@@ -1,5 +1,7 @@
+use std::ops::Mul;
+
 use bevy::prelude::{App, AssetServer, Commands, Plugin, Res, Transform, Vec3};
-use bevy_ecs_ldtk::{LdtkWorldBundle};
+use bevy_ecs_ldtk::LdtkWorldBundle;
 
 use super::generator::Map;
 
@@ -21,7 +23,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         // Load the level using the LDtk loader
         let level_bundle = LdtkWorldBundle {
             ldtk_handle: level_asset,
-            transform: Transform::from_translation(offset), /*.with_scale(Vec3::new(0.25, 0.25, 0.25))*/
+            transform: Transform::from_translation(offset.mul(0.7))
+                .with_scale(Vec3::new(0.7, 0.7, 1.)), /*.with_scale(Vec3::new(0.25, 0.25, 0.25))*/
             ..Default::default()
         };
 

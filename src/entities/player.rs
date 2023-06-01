@@ -16,7 +16,7 @@ use bevy::{
     time::Time,
     window::Window,
 };
-use bevy_ecs_ldtk::LdtkIntCell;
+use bevy_ecs_ldtk::LdtkEntity;
 use bevy_rapier2d::prelude::{
     CharacterAutostep, CharacterLength, Collider, GravityScale, KinematicCharacterController,
     KinematicCharacterControllerOutput, LockedAxes, RigidBody, Velocity,
@@ -32,7 +32,7 @@ pub struct Jump(pub bool, f32);
 #[derive(Reflect, Component, Default, Debug, Clone)]
 pub struct Speed(pub f32);
 
-#[derive(Bundle, LdtkIntCell)]
+#[derive(Bundle, LdtkEntity)]
 pub struct PlayerBundle {
     health: Health,
     _p: Player,
@@ -53,6 +53,7 @@ pub struct PlayerBundle {
     #[bundle]
     sprite: SpriteSheetBundle,
 
+    #[from_entity_instance]
     #[bundle]
     collision: CollisionBundle,
 }
@@ -260,14 +261,6 @@ pub fn check_terminal_velocity(mut player: Query<&mut Velocity, With<Player>>) {
 
     if controller.linvel.y < -3000.0 {
         controller.linvel.y = -3000.0;
-    }
-}
-
-pub fn check_player_collisions(query: Query<&KinematicCharacterControllerOutput, With<Player>>) {
-    for controller in query.iter() {
-        for collision in controller.collisions.iter() {
-            println!("{:?}", collision);
-        }
     }
 }
 

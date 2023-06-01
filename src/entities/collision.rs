@@ -1,6 +1,4 @@
-use bevy::{
-    prelude::{Bundle, Resource},
-};
+use bevy::prelude::{Bundle, Resource};
 use bevy_ecs_ldtk::{EntityInstance, LdtkIntCell};
 use bevy_rapier2d::prelude::{Collider, GravityScale, LockedAxes, RigidBody, Velocity};
 
@@ -48,9 +46,14 @@ impl From<&EntityInstance> for CollisionBundle {
         let _rotation_constraints = LockedAxes::ROTATION_LOCKED;
 
         match entity_instance.identifier.as_ref() {
-            "Player" => {
-                todo!()
-            }
+            "Player" => CollisionBundle::new(
+                RigidBody::Dynamic,
+                Collider::cuboid(36., 50.),
+                LockedAxes::ROTATION_LOCKED_Z,
+                Velocity::default(),
+                GravityScale(1.0),
+            ),
+
             "Mob" => {
                 todo!()
             }
