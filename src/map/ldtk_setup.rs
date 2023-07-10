@@ -1,9 +1,9 @@
-use std::ops::Mul;
+use std::{fmt::format, ops::Mul};
 
 use bevy::prelude::{App, AssetServer, Commands, Plugin, Res, Transform, Vec3};
 use bevy_ecs_ldtk::LdtkWorldBundle;
 
-use super::generator::Map;
+use super::generator::{Map, MapTile};
 
 pub struct LdtkLoader;
 
@@ -37,13 +37,42 @@ fn generate_ldtk_files() -> Vec<(String, Vec3)> {
     let map = Map::new(3, 3);
     let mut ldtk_files = Vec::new();
 
-    for (i, _tile) in map.map_tiles.iter().enumerate() {
-        // let ldtk_file = match tile {
-        //     super::generator::MapTile::Entrance { pos, to } => todo!(),
-        //     super::generator::MapTile::Exit { pos, from } => todo!(),
-        //     super::generator::MapTile::Path { pos, from, to } => todo!(),
-        //     super::generator::MapTile::Empty { pos } => todo!(),
-        // };
+    for (i, tile) in map.map_tiles.iter().enumerate() {
+        let rand = rand::random::<u32>() % 1;
+        let ldtk_file = match tile {
+            MapTile::Entrance { pos, to } => {
+                format!(
+                    "/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/{}/{}.ldtk",
+                    to, rand
+                )
+            }
+            MapTile::Exit { pos, from } => format!(
+                "/home/degra/Coding/Rust/roguelike/map_assets/map/exits/{}/{}.ldtk",
+                from, rand,
+            ),
+            MapTile::Path { pos, from, to } => format!(
+                "/home/degra/Coding/Rust/roguelike/map_assets/map/paths/{}-{}/{}.ldtk",
+                from, to, rand
+            ),
+            MapTile::Empty { .. } => {
+                let from_dir = match rand::random::<u32>() % 3 {
+                    0 => "down",
+                    1 => "left",
+                    2 => "right",
+                    _ => "down",
+                };
+                let to_dir = match rand::random::<u32>() % 3 {
+                    0 => "up",
+                    1 => "left",
+                    2 => "right",
+                    _ => "up",
+                };
+                format!(
+                    "/home/degra/Coding/Rust/roguelike/map_assets/map/{}-{}/{}.ldtk",
+                    from_dir, to_dir, rand
+                )
+            }
+        };
 
         let ldtk_file =
             "/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/0.ldtk".to_string();
