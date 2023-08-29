@@ -10,9 +10,9 @@ pub enum Direction {
 impl Display for Direction {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Direction::Down => write!(f, ""),
-            Direction::Right => write!(f, ""),
-            Direction::Left => write!(f, ""),
+            Direction::Down => write!(f, "down"),
+            Direction::Right => write!(f, "right"),
+            Direction::Left => write!(f, "left"),
         }
     }
 }

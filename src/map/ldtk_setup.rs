@@ -1,4 +1,4 @@
-use std::{fmt::format, ops::Mul};
+use std::{env::current_dir, fmt::format, ops::Mul};
 
 use bevy::prelude::{App, AssetServer, Commands, Plugin, Res, Transform, Vec3};
 use bevy_ecs_ldtk::LdtkWorldBundle;
@@ -37,23 +37,17 @@ fn generate_ldtk_files() -> Vec<(String, Vec3)> {
     let map = Map::new(3, 3);
     let mut ldtk_files = Vec::new();
 
+    let current_dir = current_dir().unwrap();
     for (i, tile) in map.map_tiles.iter().enumerate() {
         let rand = rand::random::<u32>() % 1;
-        let ldtk_file = match tile {
+        let specific_file_path = match tile {
             MapTile::Entrance { pos, to } => {
-                format!(
-                    "/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/{}/{}.ldtk",
-                    to, rand
-                )
+                format!("map_assets/map/entrances/{}/{}.ldtk", to, rand)
             }
-            MapTile::Exit { pos, from } => format!(
-                "/home/degra/Coding/Rust/roguelike/map_assets/map/exits/{}/{}.ldtk",
-                from, rand,
-            ),
-            MapTile::Path { pos, from, to } => format!(
-                "/home/degra/Coding/Rust/roguelike/map_assets/map/paths/{}-{}/{}.ldtk",
-                from, to, rand
-            ),
+            MapTile::Exit { pos, from } => format!("map_assets/map/exits/{}/{}.ldtk", from, rand,),
+            MapTile::Path { pos, from, to } => {
+                format!("map_assets/map/{}-{}/{}.ldtk", from, to, rand)
+            }
             MapTile::Empty { .. } => {
                 let from_dir = match rand::random::<u32>() % 3 {
                     0 => "down",
@@ -67,15 +61,13 @@ fn generate_ldtk_files() -> Vec<(String, Vec3)> {
                     2 => "right",
                     _ => "up",
                 };
-                format!(
-                    "/home/degra/Coding/Rust/roguelike/map_assets/map/{}-{}/{}.ldtk",
-                    from_dir, to_dir, rand
-                )
+                // format!("map_assets/map/{}-{}/{}.ldtk", from_dir, to_dir, rand)
+                format!("map_assets/map/entrances/0.ldtk")
             }
         };
+        // let specific_file_path = "map_assets/map/entrances/0.ldtk";
 
-        let ldtk_file =
-            "/home/degra/Coding/Rust/roguelike/map_assets/map/entrances/0.ldtk".to_string();
+        let ldtk_file = format!("{}/{}", current_dir.display(), specific_file_path);
         // make the level offset in a grid pattern
         ldtk_files.push((
             ldtk_file,
